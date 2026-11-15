@@ -1,0 +1,364 @@
+<section class="container pb-5">
+  <h1 class="titulo-seccion">Mi perfil</h1>
+
+  @if (cargando()) {
+    <div class="text-center py-5">
+      <span class="spinner-border text-secondary" role="status">
+        <span class="visually-hidden">Cargando tu perfil…</span>
+      </span>
+    </div>
+  } @else if (fallo()) {
+    <div class="alert alert-danger d-flex align-items-center gap-3" role="alert">
+      <span class="flex-grow-1">No se ha podido cargar tu perfil.</span>
+      <button type="button" class="btn btn-sm btn-outline-danger" (click)="cargar()">
+        Reintentar
+      </button>
+    </div>
+  } @else if (perfil(); as p) {
+    <div class="row g-4 animate__animated animate__fadeIn">
+      <div class="col-lg-7">
+        <form class="card h-100" [formGroup]="datos" (ngSubmit)="guardarDatos()" novalidate>
+          <div class="card-body">
+            <h2 class="h5 mb-3">
+              <fa-icon [icon]="iconos.datos" class="me-2 text-secondary" />Mis datos
+            </h2>
+
+            @if (errorDatos(); as mensaje) {
+              <div class="alert alert-danger" role="alert">{{ mensaje }}</div>
+            }
+
+            <dl class="row mb-3">
+              <dt class="col-sm-4 fw-normal text-body-secondary">Nombre de usuario</dt>
+              <dd class="col-sm-8 mb-0 fw-semibold">{{ p.id }}</dd>
+              <dt class="col-sm-4 fw-normal text-body-secondary">Rol</dt>
+              <dd class="col-sm-8 mb-0">
+                {{ p.roles.includes('ADMIN') ? 'Administrador' : 'Usuario' }}
+              </dd>
+              @if (p.google) {
+                <dt class="col-sm-4 fw-normal text-body-secondary">Google</dt>
+                <dd class="col-sm-8 mb-0">
+                  Vinculada: también entras con tu cuenta de Google.
+                  <button
+                    type="button"
+                    class="btn btn-link btn-sm p-0 align-baseline"
+                    appRequiereConexion
+                    (click)="desvincularGoogle()"
+                  >
+                    Desvincular Google
+                  </button>
+                </dd>
+              }
+            </dl>
+
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label for="perfil-nombre" class="form-label">Nombre</label>
+                <input
+                  id="perfil-nombre"
+                  type="text"
+                  class="form-control"
+                  formControlName="nombre"
+                  autocomplete="given-name"
+                  maxlength="100"
+                  [class.is-invalid]="esInvalido(datos.controls.nombre)"
+                  [attr.aria-invalid]="esInvalido(datos.controls.nombre)"
+                  aria-describedby="perfil-nombre-error"
+                />
+                <app-error-campo
+                  [control]="datos.controls.nombre"
+                  idMensaje="perfil-nombre-error"
+                />
+              </div>
+              <div class="col-md-4">
+                <label for="perfil-apellido1" class="form-label">Primer apellido</label>
+                <input
+                  id="perfil-apellido1"
+                  type="text"
+                  class="form-control"
+                  formControlName="apellido1"
+                  autocomplete="family-name"
+                  maxlength="100"
+                  [class.is-invalid]="esInvalido(datos.controls.apellido1)"
+                  [attr.aria-invalid]="esInvalido(datos.controls.apellido1)"
+                  aria-describedby="perfil-apellido1-error"
+                />
+                <app-error-campo
+                  [control]="datos.controls.apellido1"
+                  idMensaje="perfil-apellido1-error"
+                />
+              </div>
+              <div class="col-md-4">
+                <label for="perfil-apellido2" class="form-label">Segundo apellido</label>
+                <input
+                  id="perfil-apellido2"
+                  type="text"
+                  class="form-control"
+                  formControlName="apellido2"
+                  maxlength="100"
+                  [class.is-invalid]="esInvalido(datos.controls.apellido2)"
+                  [attr.aria-invalid]="esInvalido(datos.controls.apellido2)"
+                  aria-describedby="perfil-apellido2-ayuda perfil-apellido2-error"
+                />
+                <div id="perfil-apellido2-ayuda" class="form-text">Opcional.</div>
+                <app-error-campo
+                  [control]="datos.controls.apellido2"
+                  idMensaje="perfil-apellido2-error"
+                />
+              </div>
+              <div class="col-12">
+                <label for="perfil-email" class="form-label">Email</label>
+                <input
+                  id="perfil-email"
+                  type="email"
+                  class="form-control"
+                  formControlName="email"
+                  autocomplete="email"
+                  maxlength="100"
+                  [class.is-invalid]="esInvalido(datos.controls.email)"
+                  [attr.aria-invalid]="esInvalido(datos.controls.email)"
+                  aria-describedby="perfil-email-estado perfil-email-error"
+                />
+                <app-error-campo [control]="datos.controls.email" idMensaje="perfil-email-error" />
+                @if (p.emailPendiente; as pendiente) {
+                  <div class="form-text" id="perfil-email-estado">
+                    Cambio pendiente: te hemos enviado un enlace a
+                    <strong class="text-break">{{ pendiente }}</strong
+                    >. Hasta que lo confirmes, la cuenta sigue con {{ p.email }}.
+                    <button
+                      type="button"
+                      class="btn btn-link btn-sm p-0 align-baseline"
+                      [appRequiereConexion]="enviandoConfirmacion()"
+                      (click)="enviarConfirmacion()"
+                    >
+                      Reenviar el enlace
+                    </button>
+                    ·
+                    <button
+                      type="button"
+                      class="btn btn-link btn-sm p-0 align-baseline"
+                      appRequiereConexion
+                      (click)="cancelarCambioEmail()"
+                    >
+                      Cancelar el cambio
+                    </button>
+                  </div>
+                } @else if (!p.emailVerificado) {
+                  <div class="form-text" id="perfil-email-estado">
+                    Sin confirmar: abre el enlace que te enviamos.
+                    <button
+                      type="button"
+                      class="btn btn-link btn-sm p-0 align-baseline"
+                      [appRequiereConexion]="enviandoConfirmacion()"
+                      (click)="enviarConfirmacion()"
+                    >
+                      Enviar el enlace
+                    </button>
+                  </div>
+                } @else {
+                  <div class="form-text" id="perfil-email-estado">Confirmado.</div>
+                }
+              </div>
+              @if (cambiaEmail()) {
+                <div class="col-12">
+                  <label for="perfil-password-email" class="form-label">
+                    Contraseña actual, para cambiar el email
+                  </label>
+                  <input
+                    id="perfil-password-email"
+                    type="password"
+                    class="form-control"
+                    formControlName="password"
+                    autocomplete="current-password"
+                    [class.is-invalid]="esInvalido(datos.controls.password)"
+                    [attr.aria-invalid]="esInvalido(datos.controls.password)"
+                    aria-describedby="perfil-password-email-ayuda perfil-password-email-error"
+                  />
+                  <div id="perfil-password-email-ayuda" class="form-text">
+                    Te enviaremos un enlace al email nuevo para confirmarlo; hasta entonces, la
+                    cuenta seguirá con el actual.
+                    @if (p.google) {
+                      Si entras con Google y no tienes contraseña, créala antes con «Enviarme el
+                      enlace».
+                    }
+                  </div>
+                  <app-error-campo
+                    [control]="datos.controls.password"
+                    idMensaje="perfil-password-email-error"
+                  />
+                </div>
+              }
+            </div>
+          </div>
+          <div
+            class="card-footer bg-transparent border-0 pt-0 pb-3 px-3 d-flex justify-content-end"
+          >
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [appRequiereConexion]="datos.invalid || datos.pristine || guardandoDatos()"
+            >
+              @if (guardandoDatos()) {
+                <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+              }
+              Guardar los datos
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="col-lg-5">
+        <form class="card h-100" [formGroup]="password" (ngSubmit)="cambiarPassword()" novalidate>
+          <div class="card-body">
+            <h2 class="h5 mb-3">
+              <fa-icon [icon]="iconos.password" class="me-2 text-secondary" />Cambiar la contraseña
+            </h2>
+
+            @if (errorPassword(); as mensaje) {
+              <div class="alert alert-danger" role="alert">{{ mensaje }}</div>
+            }
+
+            @if (p.google) {
+              <p class="small text-body-secondary">
+                Si entras con Google y aún no tienes contraseña, te enviamos a tu email un enlace
+                para crearla.
+                <button
+                  type="button"
+                  class="btn btn-link btn-sm p-0 align-baseline"
+                  [appRequiereConexion]="enviandoEnlace()"
+                  (click)="enviarEnlacePassword()"
+                >
+                  Enviarme el enlace
+                </button>
+              </p>
+            }
+
+            <!-- Para que el gestor de contraseñas sepa de qué cuenta es -->
+            <input
+              type="text"
+              class="d-none"
+              autocomplete="username"
+              [value]="p.id"
+              aria-hidden="true"
+              tabindex="-1"
+              readonly
+            />
+
+            <div class="mb-3">
+              <label for="perfil-actual" class="form-label">Contraseña actual</label>
+              <input
+                id="perfil-actual"
+                type="password"
+                class="form-control"
+                formControlName="actual"
+                autocomplete="current-password"
+                [class.is-invalid]="esInvalido(password.controls.actual)"
+                [attr.aria-invalid]="esInvalido(password.controls.actual)"
+                aria-describedby="perfil-actual-error"
+              />
+              <app-error-campo
+                [control]="password.controls.actual"
+                idMensaje="perfil-actual-error"
+              />
+            </div>
+            <div class="mb-3">
+              <label for="perfil-nueva" class="form-label">Contraseña nueva</label>
+              <input
+                id="perfil-nueva"
+                type="password"
+                class="form-control"
+                formControlName="nueva"
+                autocomplete="new-password"
+                maxlength="72"
+                [class.is-invalid]="esInvalido(password.controls.nueva)"
+                [attr.aria-invalid]="esInvalido(password.controls.nueva)"
+                aria-describedby="perfil-nueva-ayuda perfil-nueva-error"
+              />
+              <div id="perfil-nueva-ayuda" class="form-text">De 8 a 72 caracteres.</div>
+              <app-error-campo [control]="password.controls.nueva" idMensaje="perfil-nueva-error" />
+            </div>
+            <div>
+              <label for="perfil-confirmacion" class="form-label">Repite la contraseña nueva</label>
+              <input
+                id="perfil-confirmacion"
+                type="password"
+                class="form-control"
+                formControlName="confirmacion"
+                autocomplete="new-password"
+                maxlength="72"
+                [class.is-invalid]="esInvalido(password.controls.confirmacion)"
+                [attr.aria-invalid]="esInvalido(password.controls.confirmacion)"
+                aria-describedby="perfil-confirmacion-error"
+              />
+              <app-error-campo
+                [control]="password.controls.confirmacion"
+                idMensaje="perfil-confirmacion-error"
+              />
+            </div>
+          </div>
+          <div
+            class="card-footer bg-transparent border-0 pt-0 pb-3 px-3 d-flex justify-content-end"
+          >
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [appRequiereConexion]="password.invalid || cambiandoPassword()"
+            >
+              @if (cambiandoPassword()) {
+                <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+              }
+              Cambiar la contraseña
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="col-12">
+        <app-avisos-perfil />
+      </div>
+
+      <div class="col-12">
+        <section class="card" aria-labelledby="perfil-datos-cuenta">
+          <div class="card-body">
+            <h2 id="perfil-datos-cuenta" class="h5 mb-3">Tus datos y tu cuenta</h2>
+            <div class="row g-4">
+              <div class="col-md-6">
+                <h3 class="h6">Descargar mis datos</h3>
+                <p class="small text-body-secondary">
+                  Un fichero JSON con tu perfil, tus recetas, lo que has comido, tus «me gusta», tu
+                  planificador, tus valoraciones y dónde tienes activados los avisos.
+                </p>
+                <button
+                  type="button"
+                  class="btn btn-outline-primary"
+                  [disabled]="descargando()"
+                  (click)="descargarDatos()"
+                >
+                  @if (descargando()) {
+                    <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                  } @else {
+                    <fa-icon [icon]="iconos.descargar" class="me-1" />
+                  }
+                  Descargar mis datos
+                </button>
+              </div>
+              <div class="col-md-6">
+                <h3 class="h6">Eliminar mi cuenta</h3>
+                <p class="small text-body-secondary">
+                  Borra tu cuenta y todos tus datos. No se puede deshacer.
+                </p>
+                <button
+                  type="button"
+                  class="btn btn-outline-danger"
+                  appRequiereConexion
+                  (click)="darseDeBaja()"
+                >
+                  <fa-icon [icon]="iconos.baja" class="me-1" />Eliminar mi cuenta
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  }
+</section>

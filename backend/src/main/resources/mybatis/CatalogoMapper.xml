@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="es.alimentarse.catalogo.CatalogoMapper">
+
+    <!-- También lo usan otros mappers para el grupo anidado de un ingrediente (con columnPrefix) -->
+    <resultMap id="grupo" type="es.alimentarse.catalogo.GrupoDto">
+        <constructor>
+            <idArg column="ID" javaType="_int" name="id"/>
+            <arg column="NOMBRE" javaType="string" name="nombre"/>
+            <arg column="RACIONES_SEMANA" javaType="java.lang.Integer" name="racionesSemana"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="tipoReceta" type="es.alimentarse.catalogo.TipoRecetaDto">
+        <constructor>
+            <idArg column="ID" javaType="_int" name="id"/>
+            <arg column="NOMBRE" javaType="string" name="nombre"/>
+        </constructor>
+    </resultMap>
+
+    <select id="grupos" resultMap="grupo">
+        SELECT ID, NOMBRE, RACIONES_SEMANA FROM grupo_ingrediente ORDER BY NOMBRE
+    </select>
+
+    <select id="tiposReceta" resultMap="tipoReceta">
+        SELECT ID, NOMBRE FROM tipo_receta ORDER BY NOMBRE
+    </select>
+
+    <select id="existeGrupo" resultType="boolean">
+        SELECT EXISTS (SELECT 1 FROM grupo_ingrediente WHERE ID = #{id})
+    </select>
+
+    <select id="existeTipoReceta" resultType="boolean">
+        SELECT EXISTS (SELECT 1 FROM tipo_receta WHERE ID = #{id})
+    </select>
+</mapper>

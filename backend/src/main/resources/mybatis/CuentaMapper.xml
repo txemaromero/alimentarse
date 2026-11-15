@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="es.alimentarse.cuenta.CuentaMapper">
+
+    <!-- Filas planas: el servicio arma el JSON de la exportación (D-040) -->
+    <resultMap id="receta" type="es.alimentarse.cuenta.CuentaMapper$FilaReceta">
+        <constructor>
+            <idArg column="ID" javaType="_int" name="id"/>
+            <arg column="TITULO" javaType="string" name="titulo"/>
+            <arg column="TIPO" javaType="string" name="tipo"/>
+            <arg column="INSTRUCCIONES" javaType="string" name="instrucciones"/>
+            <arg column="TIEMPO" javaType="_int" name="tiempo"/>
+            <arg column="COMENSALES" javaType="_int" name="comensales"/>
+            <arg column="DIFICULTAD" javaType="string" name="dificultad"/>
+            <arg column="PUBLICADA" javaType="_boolean" name="publicada"/>
+            <arg column="OCULTA" javaType="_boolean" name="oculta"/>
+            <arg column="MOTIVO_OCULTA" javaType="string" name="motivoOculta"/>
+            <arg column="FECHA_CREACION" javaType="java.time.Instant" name="fechaCreacion"/>
+            <arg column="IMAGEN" javaType="string" name="imagen"/>
+            <arg column="VIDEO" javaType="string" name="video"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="ingrediente" type="es.alimentarse.cuenta.CuentaMapper$FilaIngrediente">
+        <constructor>
+            <arg column="RECETA" javaType="_int" name="receta"/>
+            <arg column="NOMBRE" javaType="string" name="nombre"/>
+            <arg column="CANTIDAD" javaType="string" name="cantidad"/>
+            <arg column="GRUPO" javaType="string" name="grupo"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="actividad" type="es.alimentarse.cuenta.CuentaMapper$FilaActividad">
+        <constructor>
+            <arg column="FECHA" javaType="java.time.Instant" name="fecha"/>
+            <arg column="RECETA" javaType="_int" name="receta"/>
+            <arg column="TITULO" javaType="string" name="titulo"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="valoracion" type="es.alimentarse.cuenta.CuentaMapper$FilaValoracion">
+        <constructor>
+            <arg column="FECHA" javaType="java.time.Instant" name="fecha"/>
+            <arg column="RECETA" javaType="_int" name="receta"/>
+            <arg column="TITULO" javaType="string" name="titulo"/>
+            <arg column="NOTA" javaType="_int" name="nota"/>
+            <arg column="COMENTARIO" javaType="string" name="comentario"/>
+            <arg column="OCULTA" javaType="_boolean" name="oculta"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="suscripcion" type="es.alimentarse.cuenta.CuentaMapper$FilaSuscripcion">
+        <constructor>
+            <arg column="FECHA" javaType="java.time.Instant" name="fecha"/>
+            <arg column="ENDPOINT" javaType="string" name="endpoint"/>
+        </constructor>
+    </resultMap>
+
+    <!-- ===== Exportación ===== -->
+
+    <select id="recetasDe" resultMap="receta">
+        SELECT r.ID, r.TITULO, t.NOMBRE AS TIPO, r.INSTRUCCIONES, r.TIEMPO, r.COMENSALES, r.DIFICULTAD,
+               r.PUBLICADA, r.OCULTA, r.MOTIVO_OCULTA, r.FECHA_CREACION, r.IMAGEN, r.VIDEO
+        FROM recetas r
+        JOIN tipo_receta t ON t.ID = r.TIPO
+        WHERE r.USUARIO = #{usuario} AND r.ELIMINADA = FALSE
+        ORDER BY r.FECHA_CREACION, r.ID
+    </select>
+
+    <select id="ingredientesDe" resultMap="ingrediente">
+        SELECT ir.RECETA, i.NOMBRE, ir.CANTIDAD, g.NOMBRE AS GRUPO
+        FROM ingrediente_receta ir
+        JOIN recetas r ON r.ID = ir.RECETA
+        JOIN ingredientes i ON i.ID = ir.INGREDIENTE
+        JOIN grupo_ingrediente g ON g.ID = i.GRUPO
+        WHERE r.USUARIO = #{usuario} AND r.ELIMINADA = FALSE
+        ORDER BY ir.RECETA, i.NOMBRE
+    </select>
+
+    <select id="consumosDe" resultMap="actividad">
+        SELECT c.FECHA, r.ID AS RECETA, r.TITULO
+        FROM usuario_receta_consumida c
+        JOIN recetas r ON r.ID = c.RECETA
+        WHERE c.USUARIO = #{usuario}
+        ORDER BY c.FECHA, c.ID
+    </select>
+
+    <select id="meGustaDe" resultMap="actividad">
+        SELECT l.FECHA, r.ID AS RECETA, r.TITULO
+        FROM like_receta l
+        JOIN recetas r ON r.ID = l.RECETA
+        WHERE l.USUARIO = #{usuario}
+        ORDER BY l.FECHA, r.ID
+    </select>
+
+    <select id="valoracionesDe" resultMap="valoracion">
+        SELECT v.FECHA, r.ID AS RECETA, r.TITULO, v.NOTA, v.COMENTARIO, v.OCULTA
+        FROM valoracion_receta v
+        JOIN recetas r ON r.ID = v.RECETA
+        WHERE v.USUARIO = #{usuario}
+        ORDER BY v.FECHA, v.ID
+    </select>
+
+    <select id="suscripcionesDe" resultMap="suscripcion">
+        SELECT FECHA, ENDPOINT FROM suscripcion_push WHERE USUARIO = #{usuario} ORDER BY FECHA, ID
+    </select>
+
+    <select id="planDe" resultMap="actividad">
+        SELECT p.FECHA, r.ID AS RECETA, r.TITULO
+        FROM usuario_receta_planificada p
+        JOIN recetas r ON r.ID = p.RECETA
+        WHERE p.USUARIO = #{usuario}
+        ORDER BY p.FECHA, p.ID
+    </select>
+
+    <!-- ===== Baja ===== -->
+
+    <select id="bloquearRecetasDe" resultType="_int">
+        SELECT ID FROM recetas WHERE USUARIO = #{usuario} FOR UPDATE
+    </select>
+
+    <select id="imagenesDe" resultType="string">
+        SELECT IMAGEN FROM recetas WHERE USUARIO = #{usuario} AND IMAGEN IS NOT NULL
+        UNION
+        SELECT f.NOMBRE FROM foto_receta f JOIN recetas r ON r.ID = f.RECETA WHERE r.USUARIO = #{usuario}
+    </select>
+
+    <delete id="borrarFotosDe">
+        DELETE f FROM foto_receta f JOIN recetas r ON r.ID = f.RECETA WHERE r.USUARIO = #{usuario}
+    </delete>
+
+    <resultMap id="filaFoto" type="es.alimentarse.cuenta.CuentaMapper$FilaFoto">
+        <constructor>
+            <arg column="RECETA" javaType="_int" name="receta"/>
+            <idArg column="NOMBRE" javaType="string" name="nombre"/>
+        </constructor>
+    </resultMap>
+
+    <select id="fotosDe" resultMap="filaFoto">
+        SELECT f.RECETA, f.NOMBRE
+        FROM foto_receta f
+        JOIN recetas r ON r.ID = f.RECETA
+        WHERE r.USUARIO = #{usuario}
+        ORDER BY f.RECETA, f.ORDEN
+    </select>
+
+    <delete id="borrarConsumosDe">
+        DELETE FROM usuario_receta_consumida WHERE USUARIO = #{usuario}
+    </delete>
+
+    <delete id="borrarPlanDe">
+        DELETE FROM usuario_receta_planificada WHERE USUARIO = #{usuario}
+    </delete>
+
+    <delete id="borrarLikesDe">
+        DELETE FROM like_receta WHERE USUARIO = #{usuario}
+    </delete>
+
+    <delete id="borrarLikesDeSusRecetas">
+        DELETE l FROM like_receta l JOIN recetas r ON r.ID = l.RECETA WHERE r.USUARIO = #{usuario}
+    </delete>
+
+    <delete id="borrarValoracionesDe">
+        DELETE FROM valoracion_receta WHERE USUARIO = #{usuario}
+    </delete>
+
+    <delete id="borrarSuscripcionesDe">
+        DELETE FROM suscripcion_push WHERE USUARIO = #{usuario}
+    </delete>
+
+    <!-- Sus propios consumos ya se han borrado: aquí solo cuentan los de otros usuarios -->
+    <update id="anonimizarRecetasConsumidas">
+        UPDATE recetas r
+        SET r.ELIMINADA = TRUE, r.PUBLICADA = FALSE, r.OCULTA = FALSE, r.MOTIVO_OCULTA = NULL, r.IMAGEN = NULL,
+            r.VIDEO = NULL,
+            r.INSTRUCCIONES = '', r.USUARIO = NULL
+        WHERE r.USUARIO = #{usuario}
+          AND EXISTS (SELECT 1 FROM usuario_receta_consumida c WHERE c.RECETA = r.ID)
+    </update>
+
+    <delete id="borrarRecetasDe">
+        DELETE FROM recetas WHERE USUARIO = #{usuario}
+    </delete>
+
+    <delete id="borrarRolesDe">
+        DELETE FROM usuario_rol WHERE USUARIO = #{usuario}
+    </delete>
+
+    <delete id="borrarUsuario">
+        DELETE FROM usuarios WHERE ID = #{usuario}
+    </delete>
+</mapper>

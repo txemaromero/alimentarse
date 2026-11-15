@@ -1,0 +1,16 @@
+<button
+  type="button"
+  class="saltar btn btn-dark visually-hidden-focusable"
+  (click)="saltarAlContenido(contenido)"
+>
+  Saltar al contenido
+</button>
+<app-cabecera />
+<app-aviso-conexion />
+<app-aviso-email />
+<main #contenido id="contenido" class="contenido" tabindex="-1">
+  <router-outlet />
+</main>
+<app-pie />
+<app-avisos />
+<app-aviso-version />

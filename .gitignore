@@ -1,0 +1,39 @@
+# Secretos y datos locales
+.env
+uploads/
+.tools/
+
+# Memoria del TFM (PDF): referencia local, no se versiona
+/*.pdf
+
+# Documentos de trabajo locales: especificación e instrucciones para el asistente (no se publican)
+/CLAUDE.md
+/PROMPT_QTH_Claude_Code.md
+
+# Backend
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+# Build de Angular dentro del backend: se genera con "npm run build"
+backend/src/main/resources/static/
+
+# e2e (Playwright, en frontend/e2e)
+frontend/test-results/
+frontend/playwright-report/
+
+# IDEs
+.idea/
+*.iml
+*.iws
+*.ipr
+.classpath
+.project
+.settings/
+.factorypath
+.apt_generated
+.sts4-cache
+.vscode/*
+!.vscode/extensions.json
+
+# Sistema
+.DS_Store
+Thumbs.db

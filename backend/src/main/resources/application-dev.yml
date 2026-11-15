@@ -1,0 +1,28 @@
+# Perfil de desarrollo (por defecto).
+spring:
+  flyway:
+    # db/dev: datos de demostración (usuarios, recetas y consumos de ejemplo), solo en este perfil (D-015)
+    locations: classpath:db/migration,classpath:db/dev
+  mail:
+    properties:
+      # Nombre para el saludo SMTP (EHLO). Sin él, JavaMail resuelve el nombre del equipo y en algunas
+      # máquinas Windows eso tarda ~5 s por correo.
+      mail.smtp.localhost: localhost
+
+app:
+  jwt:
+    # En desarrollo no hay HTTPS
+    cookie-segura: ${COOKIE_SEGURA:false}
+
+# Swagger UI en http://localhost:8080/api/docs
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+logging:
+  level:
+    # En DEBUG, MyBatis escribe las SQL con sus parámetros (hashes de contraseña y de token incluidos).
+    # Para depurar las SQL de un mapper concreto: es.alimentarse.usuario.UsuarioMapper: DEBUG
+    es.alimentarse: INFO

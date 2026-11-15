@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tu cuenta de Alimentarse se ha eliminado</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f2f2f2; font-family:Arial, Helvetica, sans-serif; color:#333333;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f2f2f2; padding:24px 12px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px; background-color:#ffffff; border-radius:8px; overflow:hidden;">
+          <tr>
+            <td style="background-color:#bfa48a; padding:20px 28px; color:#ffffff; font-size:22px; font-weight:bold;">
+              Toca · ¿Qué toca hoy?
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:28px;">
+              <h1 style="margin:0 0 16px; font-size:20px; color:#333333;">Hola, <span th:text="${nombre}">Lucía</span></h1>
+              <p style="margin:0 0 12px; line-height:1.5;">Tu cuenta en <strong>Alimentarse</strong> se ha eliminado, como pediste. Hemos borrado tus datos personales, tus recetas, lo que habías comido y tus «me gusta».</p>
+              <p style="margin:0 0 12px; line-height:1.5;">Si alguien había comido alguna de tus recetas, en su histórico se conserva solo el título y los ingredientes, sin tu nombre, para que sus cuentas de la semana sigan siendo correctas.</p>
+              <p style="margin:0 0 20px; line-height:1.5;">Gracias por haber usado Toca. Si quieres volver, puedes crear una cuenta nueva cuando quieras.</p>
+              <p style="margin:0; font-size:13px; color:#777777;">Si no has sido tú, escribe a la administración de la aplicación lo antes posible.</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:16px 28px; background-color:#faf7f4; font-size:12px; color:#999999;">
+              Alimentarse · Este es un mensaje automático, no respondas a este correo.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

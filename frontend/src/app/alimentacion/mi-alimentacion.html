@@ -1,0 +1,124 @@
+<section class="container pb-5">
+  <h1 class="titulo-seccion">Mi alimentación</h1>
+
+  @if (cargando()) {
+    <div class="text-center py-5">
+      <span class="spinner-border text-secondary" role="status">
+        <span class="visually-hidden">Cargando tu alimentación…</span>
+      </span>
+    </div>
+  } @else if (fallo()) {
+    <div class="alert alert-danger d-flex align-items-center gap-3" role="alert">
+      <span class="flex-grow-1">No se ha podido cargar tu alimentación.</span>
+      <button type="button" class="btn btn-sm btn-outline-danger" (click)="cargar()">
+        Reintentar
+      </button>
+    </div>
+  } @else if (resumen(); as r) {
+    @if (sinConsumos(r)) {
+      <div class="text-center py-5 animate__animated animate__fadeIn">
+        <fa-icon [icon]="iconos.vacio" size="3x" class="text-secondary mb-3" />
+        <p class="lead mb-1">Todavía no has registrado ninguna receta consumida.</p>
+        <p class="text-body-secondary">
+          Abre una receta y pulsa «Añadir a consumidos» cuando la comas.
+        </p>
+        <a routerLink="/recetas" class="btn btn-primary">Ver recetas</a>
+      </div>
+    } @else {
+      <section aria-labelledby="titulo-ultimas" class="mb-5">
+        <h2 id="titulo-ultimas" class="h5 text-uppercase mb-3">Últimas recetas consumidas</h2>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4">
+          @for (consumo of r.ultimas; track consumo.id) {
+            <div class="col animate__animated animate__fadeIn">
+              <app-tarjeta-receta [receta]="consumo.receta" (cambio)="actualizar($event)">
+                <p class="small mb-3 consumida">
+                  Receta consumida el {{ consumo.fecha | date: formato }}
+                </p>
+              </app-tarjeta-receta>
+            </div>
+          }
+        </div>
+        <div class="d-flex flex-wrap justify-content-center gap-2 mt-4">
+          <a routerLink="/mi-alimentacion/historico" class="btn btn-outline-primary">
+            <fa-icon [icon]="iconos.historico" class="me-1" />Ver histórico completo
+          </a>
+          <a routerLink="/planificador" class="btn btn-outline-primary">
+            <fa-icon [icon]="iconos.planificador" class="me-1" />Planificar la semana
+          </a>
+        </div>
+      </section>
+
+      <div class="row gx-4 gy-5">
+        <section class="col-lg-8" aria-labelledby="titulo-mas-consumidas">
+          <h2 id="titulo-mas-consumidas" class="h5 text-uppercase mb-3">Recetas más consumidas</h2>
+          <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-4">
+            @for (item of r.masConsumidas; track item.receta.id) {
+              <div class="col">
+                <app-tarjeta-receta [receta]="item.receta" (cambio)="actualizar($event)">
+                  <p class="mb-3">
+                    <span class="badge rounded-pill text-bg-primary">
+                      {{ item.veces }} {{ item.veces === 1 ? 'vez' : 'veces' }}
+                    </span>
+                  </p>
+                </app-tarjeta-receta>
+              </div>
+            }
+          </div>
+        </section>
+
+        <section class="col-lg-4" aria-labelledby="titulo-ingredientes">
+          <h2 id="titulo-ingredientes" class="h5 text-uppercase mb-3">Ingredientes más usados</h2>
+          @if (r.ingredientesMasUsados.length === 0) {
+            <p class="text-body-secondary">Aún no hay ingredientes que destacar.</p>
+          } @else {
+            <ol class="list-unstyled d-grid gap-2 mb-2">
+              @for (item of r.ingredientesMasUsados; track item.ingrediente.id; let i = $index) {
+                <li class="card card-body py-2 d-flex flex-row align-items-center gap-3">
+                  <span class="puesto" aria-hidden="true">{{ i + 1 }}</span>
+                  <span class="flex-grow-1">
+                    <strong class="d-block">{{ item.ingrediente.nombre }}</strong>
+                    <span class="small text-body-secondary">{{
+                      item.ingrediente.grupo.nombre
+                    }}</span>
+                  </span>
+                  <span class="small text-nowrap">
+                    En {{ item.veces }} {{ item.veces === 1 ? 'consumo' : 'consumos' }}
+                  </span>
+                </li>
+              }
+            </ol>
+          }
+          <p class="small text-body-secondary">
+            No se cuentan los ingredientes básicos (sal, aceite, agua, especias…), que están en casi
+            todas las recetas.
+          </p>
+        </section>
+      </div>
+
+      <section aria-labelledby="titulo-semana" class="mt-5">
+        <h2 id="titulo-semana" class="h5 text-uppercase mb-1">
+          Ingredientes en los últimos 7 días
+        </h2>
+        <p class="text-body-secondary small mb-3">
+          Raciones de cada grupo que has tomado esta semana frente a las recomendadas:
+          <span class="leyenda leyenda-verde">verde</span> dentro de lo recomendado,
+          <span class="leyenda leyenda-ambar">ámbar</span> cerca del límite y
+          <span class="leyenda leyenda-rojo">rojo</span> límite alcanzado.
+        </p>
+        @if (r.grupos7Dias.length === 0) {
+          <p class="text-body-secondary">No has consumido ninguna receta en los últimos 7 días.</p>
+        } @else {
+          <ul class="list-unstyled row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-6 g-4">
+            @for (indicador of r.grupos7Dias; track indicador.grupo.id) {
+              <li class="col">
+                <app-indicador-grupo [indicador]="indicador" />
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
+      <app-nutricion-semana class="mt-5" />
+    }
+  }
+</section>

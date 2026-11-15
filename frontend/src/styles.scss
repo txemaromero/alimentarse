@@ -1,0 +1,224 @@
+/*
+ * Tema de Alimentarse (Toca): Bootstrap 5 compilado con los colores de la marca.
+ * Contraste comprobado (WCAG AA): texto blanco sobre $primary y $danger, y texto marrón oscuro sobre el beige.
+ */
+
+// Colores de la marca
+$beige: #bfa48a;
+$beige-claro: #efe6dd;
+$marron-oscuro: #3b2c20;
+$verde: #2e7d32;
+$rojo: #c62828;
+
+// Variables de Bootstrap
+$primary: $verde;
+$danger: $rojo;
+$secondary: #6c5a4b;
+// El fondo de la página es gris claro; $body-bg queda en blanco porque Bootstrap lo usa en campos y menús
+$fondo-pagina: #f2f2f2;
+$body-color: #2a2a2a;
+$link-color: #1b5e20;
+$font-family-sans-serif:
+  system-ui,
+  -apple-system,
+  'Segoe UI',
+  Roboto,
+  'Helvetica Neue',
+  Arial,
+  sans-serif;
+$border-radius: 0.5rem;
+$card-border-color: rgba(0, 0, 0, 0.06);
+
+// Contorno de los campos, casillas e interruptores: el gris de Bootstrap (#dee2e6) se queda en 1,3:1 sobre blanco y
+// apenas se ve. WCAG 1.4.11 pide 3:1 en el contorno de un control; este marrón da 3,9:1 sobre blanco, 3,4:1 sobre el
+// fondo de la página y 3,1:1 sobre el beige claro. Con el foco, el verde de la marca (el de Bootstrap, más claro que
+// el borde normal, haría que el campo pareciera perderlo). Los bordes decorativos (tarjetas, tablas) no cambian.
+$borde-campo: #8f7f70;
+$input-border-color: $borde-campo;
+$input-focus-border-color: $primary;
+$form-check-input-border: var(--bs-border-width) solid $borde-campo;
+$form-switch-color: $borde-campo;
+
+@import 'bootstrap/scss/bootstrap';
+@import 'animate.css/animate.min.css';
+
+:root {
+  --toca-beige: #{$beige};
+  --toca-beige-claro: #{$beige-claro};
+  --toca-marron-oscuro: #{$marron-oscuro};
+  --toca-borde-campo: #{$borde-campo};
+  --animate-duration: 0.5s;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  background-color: $fondo-pagina;
+}
+
+// Títulos de sección: centrados y en mayúsculas
+.titulo-seccion {
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  font-size: 1.35rem;
+  color: $marron-oscuro;
+  margin: 2rem 0 1.5rem;
+}
+
+// Tarjetas blancas con sombra suave
+.card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+// Formularios sueltos (login, registro, recuperación): tarjeta centrada
+.panel-formulario {
+  max-width: 30rem;
+  margin: 2.5rem auto;
+  padding: 0 1rem;
+
+  &.ancho {
+    max-width: 44rem;
+  }
+
+  .card-body {
+    padding: 2rem;
+
+    @include media-breakpoint-down(sm) {
+      padding: 1.25rem;
+    }
+  }
+}
+
+// Páginas de texto (ayuda, información legal…)
+.pagina-texto {
+  max-width: 48rem;
+  margin: 0 auto 3rem;
+  padding: 0 1rem;
+
+  h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-top: 1.75rem;
+    color: $marron-oscuro;
+  }
+}
+
+.pagination {
+  margin-bottom: 0;
+}
+
+// Chips (ingredientes elegidos, grupos de una receta)
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 50rem;
+  background-color: $beige-claro;
+  color: $marron-oscuro;
+  font-size: 0.875rem;
+
+  .btn-close {
+    font-size: 0.6rem;
+  }
+}
+
+// Área editable del editor de instrucciones (la crea TipTap)
+.editor-html-contenido {
+  min-height: 12rem;
+  max-height: 32rem;
+  overflow-y: auto;
+  padding: 0.75rem 1rem;
+
+  &:focus,
+  &:focus-visible {
+    outline: none;
+  }
+
+  > :last-child {
+    margin-bottom: 0;
+  }
+}
+
+// HTML de las instrucciones de una receta (llega por [innerHTML], fuera del encapsulado de estilos)
+.instrucciones {
+  line-height: 1.7;
+
+  ol,
+  ul {
+    padding-left: 1.5rem;
+  }
+
+  li {
+    margin-bottom: 0.4rem;
+
+    // El editor envuelve cada elemento de lista en un párrafo
+    > p {
+      margin-bottom: 0;
+    }
+  }
+
+  blockquote {
+    border-left: 4px solid $beige;
+    padding-left: 1rem;
+    color: #555;
+  }
+}
+
+// "Morphing controls": un botón deshabilitado se distingue claramente del activo
+.btn:disabled,
+.btn.disabled {
+  opacity: 0.55;
+  filter: grayscale(0.7);
+  cursor: not-allowed;
+  pointer-events: auto;
+}
+
+// Foco visible para la navegación con teclado
+:focus-visible {
+  outline: 3px solid rgba($verde, 0.55);
+  outline-offset: 2px;
+}
+
+// El título recibe el foco al cambiar de pantalla (FocoAlNavegar, D-075), pero no es interactivo: sin marco
+h1[tabindex='-1']:focus {
+  outline: none;
+}
+
+// Respeta a quien prefiere no ver animaciones
+@media (prefers-reduced-motion: reduce) {
+  .animate__animated {
+    animation: none !important;
+  }
+}
+
+// Al imprimir o guardar en PDF (D-076): solo el contenido de la pantalla, sin cabecera, pie ni avisos
+@media print {
+  app-cabecera,
+  app-aviso-conexion,
+  app-pie,
+  app-avisos,
+  app-aviso-version,
+  .saltar {
+    display: none !important;
+  }
+
+  body {
+    background: #fff !important;
+  }
+
+  // Los enlaces, como texto: en papel no se pueden pulsar
+  a {
+    color: inherit !important;
+    text-decoration: none !important;
+  }
+
+  .card {
+    break-inside: avoid;
+  }
+}

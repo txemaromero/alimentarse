@@ -1,0 +1,165 @@
+<section class="container pb-5">
+  <h1 class="titulo-seccion">Ingredientes</h1>
+
+  <form
+    [formGroup]="formulario"
+    (ngSubmit)="filtrar()"
+    class="card card-body mb-4"
+    role="search"
+    aria-label="Filtrar ingredientes"
+  >
+    <div class="row g-3 align-items-end">
+      <div class="col-md-5">
+        <label for="ingredientes-nombre" class="form-label">Nombre</label>
+        <input
+          id="ingredientes-nombre"
+          type="search"
+          class="form-control"
+          formControlName="nombre"
+          maxlength="100"
+          placeholder="Contiene…"
+        />
+      </div>
+      <div class="col-md-4">
+        <label for="ingredientes-grupo" class="form-label">Grupo</label>
+        <select id="ingredientes-grupo" class="form-select" formControlName="grupo">
+          <option [ngValue]="null">Todos</option>
+          @for (grupo of grupos(); track grupo.id) {
+            <option [ngValue]="grupo.id">{{ grupo.nombre }}</option>
+          }
+        </select>
+      </div>
+      <div class="col-md-3 d-flex gap-2">
+        <button type="button" class="btn btn-danger flex-fill" (click)="restablecer()">
+          <fa-icon [icon]="iconos.restablecer" class="me-1" />Restablecer
+        </button>
+        <button type="submit" class="btn btn-primary flex-fill">
+          <fa-icon [icon]="iconos.filtrar" class="me-1" />Filtrar
+        </button>
+      </div>
+      @if (sesion.esAdmin()) {
+        <div class="col-12">
+          <div class="form-check mb-0">
+            <input
+              id="ingredientes-sin-alimento"
+              type="checkbox"
+              class="form-check-input"
+              formControlName="sinAlimento"
+            />
+            <label for="ingredientes-sin-alimento" class="form-check-label">
+              Solo los que no tienen datos nutricionales
+            </label>
+          </div>
+        </div>
+      }
+    </div>
+  </form>
+
+  <div class="d-flex justify-content-end mb-3">
+    <button type="button" class="btn btn-primary" (click)="nuevo()">
+      <fa-icon [icon]="iconos.nuevo" class="me-1" />Nuevo ingrediente
+    </button>
+  </div>
+
+  <section [attr.aria-busy]="listado.cargando()" aria-labelledby="ingredientes-resultados">
+    <h2 id="ingredientes-resultados" class="visually-hidden">Resultados</h2>
+    @if (listado.fallo()) {
+      <div class="alert alert-danger d-flex align-items-center gap-3" role="alert">
+        <span class="flex-grow-1">No se han podido cargar los ingredientes.</span>
+        <button type="button" class="btn btn-sm btn-outline-danger" (click)="listado.recargar()">
+          Reintentar
+        </button>
+      </div>
+    } @else if (listado.resultado(); as pagina) {
+      @if (pagina.contenido.length === 0) {
+        <div class="text-center py-5">
+          <fa-icon [icon]="iconos.vacio" size="3x" class="text-secondary mb-3" />
+          <p class="lead">No hay ingredientes que coincidan con la búsqueda.</p>
+        </div>
+      } @else {
+        <ul
+          class="list-unstyled row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3"
+          [class.opacity-50]="listado.cargando()"
+        >
+          @for (ingrediente of pagina.contenido; track ingrediente.id) {
+            <li class="col animate__animated animate__fadeIn">
+              <article class="card h-100 tarjeta-ingrediente">
+                <div class="card-body d-flex align-items-start gap-2">
+                  <div class="flex-grow-1">
+                    <h3 class="card-title mb-1">{{ ingrediente.nombre }}</h3>
+                    <p class="small text-body-secondary mb-1">
+                      {{ ingrediente.grupo.nombre }}
+                      <span class="d-block">({{ textoRaciones(ingrediente.grupo) }})</span>
+                    </p>
+                    <p class="small mb-0 alimento">
+                      @if (ingrediente.alimento) {
+                        <span class="visually-hidden">Datos nutricionales de </span>BEDCA:
+                        {{ ingrediente.alimento }}
+                      } @else {
+                        <span class="text-body-secondary">Sin datos nutricionales</span>
+                      }
+                    </p>
+                  </div>
+                  @if (sesion.esAdmin()) {
+                    <div class="d-flex flex-column gap-1">
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary"
+                        title="Editar"
+                        [attr.aria-label]="'Editar ' + ingrediente.nombre"
+                        (click)="editar(ingrediente)"
+                      >
+                        <fa-icon [icon]="iconos.editar" />
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary"
+                        title="Datos nutricionales"
+                        [attr.aria-label]="'Datos nutricionales de ' + ingrediente.nombre"
+                        appRequiereConexion
+                        (click)="datosNutricionales(ingrediente)"
+                      >
+                        <fa-icon [icon]="iconos.nutricion" />
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary"
+                        title="Fusionar con otro"
+                        [attr.aria-label]="'Fusionar ' + ingrediente.nombre + ' con otro'"
+                        appRequiereConexion
+                        (click)="fusionar(ingrediente)"
+                      >
+                        <fa-icon [icon]="iconos.fusionar" />
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-danger"
+                        title="Borrar"
+                        [attr.aria-label]="'Borrar ' + ingrediente.nombre"
+                        appRequiereConexion
+                        (click)="borrar(ingrediente)"
+                      >
+                        <fa-icon [icon]="iconos.borrar" />
+                      </button>
+                    </div>
+                  }
+                </div>
+              </article>
+            </li>
+          }
+        </ul>
+        <app-paginacion
+          [datos]="pagina"
+          etiqueta="Páginas de ingredientes"
+          (pagina)="listado.cargar($event)"
+        />
+      }
+    } @else if (listado.cargando()) {
+      <div class="text-center py-5">
+        <span class="spinner-border text-secondary" role="status">
+          <span class="visually-hidden">Cargando ingredientes…</span>
+        </span>
+      </div>
+    }
+  </section>
+</section>

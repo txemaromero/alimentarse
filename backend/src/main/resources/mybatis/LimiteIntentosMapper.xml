@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="es.alimentarse.seguridad.LimiteIntentosMapper">
+
+    <resultMap id="ventana" type="es.alimentarse.seguridad.LimiteIntentosMapper$Ventana">
+        <constructor>
+            <arg column="FIN" javaType="java.time.Instant" name="fin"/>
+            <arg column="INTENTOS" javaType="_int" name="intentos"/>
+        </constructor>
+    </resultMap>
+
+    <!-- Una sola sentencia: dos servidores a la vez no pierden intentos. INTENTOS va antes porque usa el FIN anterior -->
+    <insert id="registrar">
+        INSERT INTO limite_intentos (CLAVE, FIN, INTENTOS) VALUES (#{clave}, #{fin}, 1) AS nuevo
+        ON DUPLICATE KEY UPDATE
+            INTENTOS = IF(limite_intentos.FIN &lt;= #{ahora}, 1, limite_intentos.INTENTOS + 1),
+            FIN = IF(limite_intentos.FIN &lt;= #{ahora}, nuevo.FIN, limite_intentos.FIN)
+    </insert>
+
+    <select id="ventana" resultMap="ventana">
+        SELECT FIN, INTENTOS FROM limite_intentos WHERE CLAVE = #{clave}
+    </select>
+
+    <delete id="borrar">
+        DELETE FROM limite_intentos WHERE CLAVE = #{clave}
+    </delete>
+
+    <delete id="limpiar">
+        DELETE FROM limite_intentos WHERE FIN &lt;= #{ahora} LIMIT 1000
+    </delete>
+</mapper>

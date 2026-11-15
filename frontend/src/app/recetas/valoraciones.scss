@@ -1,0 +1,41 @@
+// Selector de nota: cinco radios ocultos con su estrella; las flechas cambian la nota, como en cualquier grupo de radios
+.selector-estrellas {
+  display: inline-flex;
+  gap: 0.25rem;
+  font-size: 1.5rem;
+
+  label {
+    cursor: pointer;
+    color: #9a6a00;
+    padding: 0 0.125rem;
+    border-radius: 0.25rem;
+  }
+
+  // El radio está oculto: el foco se ve en su estrella
+  input:focus-visible + label {
+    outline: 3px solid rgb(46 125 50 / 55%);
+    outline-offset: 2px;
+  }
+}
+
+.selector-estrellas.is-invalid label {
+  color: var(--bs-form-invalid-color);
+}
+
+.valoracion + .valoracion {
+  border-top: 1px solid var(--bs-border-color);
+}
+
+.valoracion.oculta {
+  opacity: 0.75;
+}
+
+// El comentario es texto plano: se respetan sus saltos de línea
+.comentario {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+#tu-valoracion:focus {
+  outline: none;
+}

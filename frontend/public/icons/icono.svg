@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Icono original de Toca: tenedor y cuchillo sobre un círculo marrón -->
+  <circle cx="256" cy="256" r="248" fill="#3b2c20"/>
+  <circle cx="256" cy="256" r="226" fill="none" stroke="#bfa48a" stroke-width="10"/>
+  <g fill="#efe6dd">
+    <g transform="translate(174 128) scale(1.6)">
+      <rect x="0" y="0" width="5" height="50" rx="2.5"/>
+      <rect x="10" y="0" width="5" height="50" rx="2.5"/>
+      <rect x="20" y="0" width="5" height="50" rx="2.5"/>
+      <path d="M0 45h25v10a12.5 12.5 0 0 1-25 0z"/>
+      <rect x="8" y="55" width="9" height="105" rx="4.5"/>
+    </g>
+    <g transform="translate(298 140) scale(1.6)">
+      <path d="M0 70V0c0-14 18-18 20 0l-4 70z"/>
+      <rect x="0" y="65" width="10" height="95" rx="5"/>
+    </g>
+  </g>
+</svg>

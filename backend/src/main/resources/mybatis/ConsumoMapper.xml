@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="es.alimentarse.consumo.ConsumoMapper">
+
+    <resultMap id="consumo" type="es.alimentarse.consumo.Consumo">
+        <constructor>
+            <idArg column="ID" javaType="_long" name="id"/>
+            <arg column="USUARIO" javaType="string" name="usuario"/>
+            <arg column="RECETA" javaType="_int" name="receta"/>
+            <arg column="FECHA" javaType="java.time.Instant" name="fecha"/>
+        </constructor>
+    </resultMap>
+
+    <!-- La receta usa el resultMap "resumen" de RecetaMapper con el prefijo R_ (D-042) -->
+    <resultMap id="consumoDto" type="es.alimentarse.consumo.ConsumoDto">
+        <constructor>
+            <idArg column="C_ID" javaType="_long" name="id"/>
+            <arg column="C_FECHA" javaType="java.time.Instant" name="fecha"/>
+            <arg javaType="es.alimentarse.receta.RecetaResumenDto" name="receta"
+                 resultMap="es.alimentarse.receta.RecetaMapper.resumen" columnPrefix="R_"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="seleccionDto">
+        SELECT c.ID AS C_ID, c.FECHA AS C_FECHA,
+        <include refid="es.alimentarse.receta.RecetaMapper.columnasResumen"><property name="prefijo" value="R_"/></include>
+        FROM usuario_receta_consumida c
+        JOIN recetas r ON r.ID = c.RECETA
+        JOIN tipo_receta t ON t.ID = r.TIPO
+    </sql>
+
+    <insert id="insertar">
+        INSERT INTO usuario_receta_consumida (USUARIO, RECETA, FECHA) VALUES (#{usuario}, #{receta}, #{fecha})
+    </insert>
+
+    <select id="ultimoIdInsertado" resultType="_long">
+        SELECT LAST_INSERT_ID()
+    </select>
+
+    <select id="buscarPorId" resultMap="consumo">
+        SELECT ID, USUARIO, RECETA, FECHA FROM usuario_receta_consumida WHERE ID = #{id}
+    </select>
+
+    <select id="buscarDto" resultMap="consumoDto">
+        <include refid="seleccionDto"/>
+        WHERE c.ID = #{id}
+    </select>
+
+    <select id="historial" resultMap="consumoDto">
+        <include refid="seleccionDto"/>
+        WHERE c.USUARIO = #{yo}
+        ORDER BY c.FECHA DESC, c.ID DESC
+        LIMIT #{limite} OFFSET #{desplazamiento}
+    </select>
+
+    <select id="contar" resultType="_long">
+        SELECT COUNT(*) FROM usuario_receta_consumida WHERE USUARIO = #{usuario}
+    </select>
+
+    <update id="actualizarFecha">
+        UPDATE usuario_receta_consumida SET FECHA = #{fecha} WHERE ID = #{id}
+    </update>
+
+    <delete id="borrar">
+        DELETE FROM usuario_receta_consumida WHERE ID = #{id}
+    </delete>
+</mapper>

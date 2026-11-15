@@ -1,0 +1,127 @@
+<header>
+  <nav class="navbar navbar-expand-lg cabecera" aria-label="Navegación principal">
+    <div class="container">
+      <app-logo class="navbar-brand" />
+
+      <button
+        class="navbar-toggler"
+        type="button"
+        aria-controls="menu-principal"
+        [attr.aria-expanded]="!plegado()"
+        aria-label="Abrir o cerrar el menú"
+        (click)="plegado.set(!plegado())"
+      >
+        <fa-icon [icon]="iconos.menu" />
+      </button>
+
+      <div
+        class="collapse navbar-collapse"
+        id="menu-principal"
+        [ngbCollapse]="plegado()"
+        (ngbCollapseChange)="plegado.set($event)"
+      >
+        @if (sesion.autenticado()) {
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                routerLink="/"
+                routerLinkActive="active"
+                [routerLinkActiveOptions]="{ exact: true }"
+                ariaCurrentWhenActive="page"
+                >Inicio</a
+              >
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                routerLink="/recetas"
+                routerLinkActive="active"
+                ariaCurrentWhenActive="page"
+                >Recetas</a
+              >
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                routerLink="/ingredientes"
+                routerLinkActive="active"
+                ariaCurrentWhenActive="page"
+                >Ingredientes</a
+              >
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                routerLink="/que-toca-hoy"
+                routerLinkActive="active"
+                ariaCurrentWhenActive="page"
+                >Qué toca hoy</a
+              >
+            </li>
+            @if (sesion.esAdmin()) {
+              <li class="nav-item" ngbDropdown display="dynamic" routerLinkActive="activo">
+                <button type="button" class="nav-link" id="menu-admin" ngbDropdownToggle>
+                  Administrador
+                </button>
+                <div ngbDropdownMenu aria-labelledby="menu-admin">
+                  <a ngbDropdownItem routerLink="/admin/usuarios">Usuarios</a>
+                  <a ngbDropdownItem routerLink="/admin/recetas-ocultas">Recetas ocultas</a>
+                  <a ngbDropdownItem routerLink="/admin/grupos">Grupos de alimentos</a>
+                </div>
+              </li>
+            }
+          </ul>
+
+          <ul class="navbar-nav">
+            <li
+              class="nav-item"
+              ngbDropdown
+              display="dynamic"
+              placement="bottom-end"
+              routerLinkActive="activo"
+            >
+              <button type="button" class="nav-link" id="menu-usuario" ngbDropdownToggle>
+                <fa-icon [icon]="iconos.usuario" class="me-1" />
+                Bienvenido, {{ sesion.usuario()?.nombre }}
+              </button>
+              <div ngbDropdownMenu aria-labelledby="menu-usuario">
+                <a ngbDropdownItem routerLink="/mi-perfil">Mi perfil</a>
+                <a ngbDropdownItem routerLink="/mis-recetas">Mis recetas</a>
+                <a ngbDropdownItem routerLink="/me-gustan">Recetas que me gustan</a>
+                <a ngbDropdownItem routerLink="/mi-alimentacion">Mi alimentación</a>
+                <a ngbDropdownItem routerLink="/planificador">Planificador</a>
+                <div class="dropdown-divider"></div>
+                <button ngbDropdownItem type="button" (click)="cerrarSesion()">
+                  <fa-icon [icon]="iconos.salir" class="me-1" />
+                  Cerrar sesión
+                </button>
+              </div>
+            </li>
+          </ul>
+        } @else {
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                routerLink="/login"
+                routerLinkActive="active"
+                ariaCurrentWhenActive="page"
+                >Iniciar sesión</a
+              >
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                routerLink="/registro"
+                routerLinkActive="active"
+                ariaCurrentWhenActive="page"
+                >Registrarse</a
+              >
+            </li>
+          </ul>
+        }
+      </div>
+    </div>
+  </nav>
+</header>

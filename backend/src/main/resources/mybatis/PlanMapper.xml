@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="es.alimentarse.alimentacion.PlanMapper">
+
+    <resultMap id="comida" type="es.alimentarse.alimentacion.ComidaPlanificada">
+        <constructor>
+            <idArg column="ID" javaType="_long" name="id"/>
+            <arg column="USUARIO" javaType="string" name="usuario"/>
+            <arg column="RECETA" javaType="_int" name="receta"/>
+            <arg column="FECHA" javaType="java.time.Instant" name="fecha"/>
+        </constructor>
+    </resultMap>
+
+    <select id="comidas" resultMap="comida">
+        SELECT ID, USUARIO, RECETA, FECHA
+        FROM usuario_receta_planificada
+        WHERE USUARIO = #{usuario}
+          AND FECHA BETWEEN #{desde} AND #{hasta}
+        ORDER BY FECHA, ID
+    </select>
+
+    <select id="bloquear" resultMap="comida">
+        SELECT ID, USUARIO, RECETA, FECHA FROM usuario_receta_planificada WHERE ID = #{id} FOR UPDATE
+    </select>
+
+    <select id="existeHueco" resultType="boolean">
+        SELECT EXISTS (SELECT 1 FROM usuario_receta_planificada WHERE USUARIO = #{usuario} AND FECHA = #{fecha})
+    </select>
+
+    <select id="contarPendientes" resultType="_int">
+        SELECT COUNT(*) FROM usuario_receta_planificada WHERE USUARIO = #{usuario} AND FECHA &gt;= #{desde}
+    </select>
+
+    <insert id="insertar">
+        INSERT INTO usuario_receta_planificada (USUARIO, RECETA, FECHA) VALUES (#{usuario}, #{receta}, #{fecha})
+    </insert>
+
+    <delete id="borrar">
+        DELETE FROM usuario_receta_planificada WHERE ID = #{id}
+    </delete>
+
+    <resultMap id="ingredienteDeReceta" type="es.alimentarse.alimentacion.IngredienteDeReceta">
+        <constructor>
+            <arg column="RECETA" javaType="_int" name="receta"/>
+            <arg column="INGREDIENTE" javaType="_int" name="ingrediente"/>
+            <arg column="NOMBRE" javaType="string" name="nombre"/>
+            <arg column="CANTIDAD" javaType="string" name="cantidad"/>
+            <arg column="GRUPO_ID" javaType="_int" name="grupoId"/>
+            <arg column="GRUPO_NOMBRE" javaType="string" name="grupoNombre"/>
+            <arg column="RACIONES_SEMANA" javaType="java.lang.Integer" name="racionesSemana"/>
+            <arg column="BASICO" javaType="_boolean" name="basico"/>
+        </constructor>
+    </resultMap>
+
+    <select id="ingredientesDeRecetas" resultMap="ingredienteDeReceta">
+        SELECT ir.RECETA, i.ID AS INGREDIENTE, i.NOMBRE, ir.CANTIDAD,
+               g.ID AS GRUPO_ID, g.NOMBRE AS GRUPO_NOMBRE, g.RACIONES_SEMANA, g.BASICO
+        FROM ingrediente_receta ir
+        JOIN ingredientes i ON i.ID = ir.INGREDIENTE
+        JOIN grupo_ingrediente g ON g.ID = i.GRUPO
+        WHERE ir.RECETA IN
+        <foreach item="receta" collection="recetas" open="(" separator="," close=")">#{receta}</foreach>
+    </select>
+</mapper>

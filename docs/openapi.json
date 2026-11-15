@@ -1,0 +1,4444 @@
+{
+  "openapi" : "3.1.0",
+  "info" : {
+    "description" : "Para probar los endpoints protegidos, inicia sesión con POST /api/auth/login. Las lecturas ya funcionan con la cookie de sesión. Para escribir, copia el valor de la cookie toca_sesion (herramientas de desarrollo del navegador → Aplicación → Cookies) y pégalo en «Authorize»: con la cabecera Authorization no hace falta el token CSRF.",
+    "title" : "API de Alimentarse (Toca, ¿Qué toca hoy?)",
+    "version" : "v1"
+  },
+  "servers" : [ {
+    "url" : "/",
+    "description" : "Este servidor"
+  } ],
+  "security" : [ {
+    "bearerAuth" : [ ]
+  } ],
+  "paths" : {
+    "/api/admin/alimentos-bedca" : {
+      "get" : {
+        "operationId" : "catalogoAdminAlimentos",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "q",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "default" : "",
+            "maxLength" : 100,
+            "minLength" : 0
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/AlimentoBedcaDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "catalogo-admin-controller" ]
+      }
+    },
+    "/api/admin/grupos" : {
+      "get" : {
+        "operationId" : "catalogoAdminGrupos",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/GrupoAdminDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "catalogo-admin-controller" ]
+      },
+      "post" : {
+        "operationId" : "catalogoAdminCrearGrupo",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/GrupoRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/GrupoAdminDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "catalogo-admin-controller" ]
+      }
+    },
+    "/api/admin/grupos/{id}" : {
+      "delete" : {
+        "operationId" : "catalogoAdminBorrarGrupo",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "catalogo-admin-controller" ]
+      },
+      "put" : {
+        "operationId" : "catalogoAdminEditarGrupo",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/GrupoRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/GrupoAdminDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "catalogo-admin-controller" ]
+      }
+    },
+    "/api/admin/ingredientes/{id}" : {
+      "delete" : {
+        "operationId" : "catalogoAdminBorrarIngrediente",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "catalogo-admin-controller" ]
+      }
+    },
+    "/api/admin/ingredientes/{id}/fusionar" : {
+      "post" : {
+        "operationId" : "catalogoAdminFusionar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/FusionRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FusionDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "catalogo-admin-controller" ]
+      }
+    },
+    "/api/admin/ingredientes/{id}/nutricion" : {
+      "get" : {
+        "operationId" : "catalogoAdminNutricion",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NutricionIngredienteDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "catalogo-admin-controller" ]
+      },
+      "put" : {
+        "operationId" : "catalogoAdminGuardarNutricion",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NutricionIngredienteRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/IngredienteDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "catalogo-admin-controller" ]
+      }
+    },
+    "/api/admin/recetas/ocultas" : {
+      "get" : {
+        "operationId" : "moderacionOcultas",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0,
+            "minimum" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 9,
+            "maximum" : 100,
+            "minimum" : 1
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PaginaRecetaResumenDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "moderacion-controller" ]
+      }
+    },
+    "/api/admin/recetas/{id}/oculta" : {
+      "put" : {
+        "operationId" : "moderacionOcultar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ModeracionRecetaRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RecetaDetalleDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "moderacion-controller" ]
+      }
+    },
+    "/api/admin/usuarios" : {
+      "get" : {
+        "operationId" : "adminListar",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "q",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "default" : "",
+            "maxLength" : 100,
+            "minLength" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0,
+            "minimum" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 10,
+            "maximum" : 100,
+            "minimum" : 1
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PaginaUsuarioAdminDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "admin-controller" ]
+      }
+    },
+    "/api/admin/usuarios/{id}/admin" : {
+      "put" : {
+        "operationId" : "adminCambiarAdmin",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CambioAdminRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UsuarioAdminDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "admin-controller" ]
+      }
+    },
+    "/api/admin/usuarios/{id}/bloqueado" : {
+      "put" : {
+        "operationId" : "adminCambiarBloqueo",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CambioBloqueoRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UsuarioAdminDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "admin-controller" ]
+      }
+    },
+    "/api/admin/valoraciones/{id}/oculta" : {
+      "put" : {
+        "operationId" : "moderacionValoracionOcultar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OcultarValoracionRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ValoracionDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "moderacion-valoracion-controller" ]
+      }
+    },
+    "/api/alimentacion/nutricion" : {
+      "get" : {
+        "operationId" : "nutricionSemana",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NutricionSemanaDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "nutricion-controller" ]
+      }
+    },
+    "/api/alimentacion/resumen" : {
+      "get" : {
+        "operationId" : "alimentacionResumen",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ResumenAlimentacionDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "alimentacion-controller" ]
+      }
+    },
+    "/api/auth/email/confirmar" : {
+      "post" : {
+        "operationId" : "authConfirmarEmail",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ConfirmarEmailRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EmailConfirmadoDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "auth-controller" ]
+      }
+    },
+    "/api/auth/google/registro" : {
+      "get" : {
+        "operationId" : "authRegistroGooglePendiente",
+        "parameters" : [ {
+          "in" : "cookie",
+          "name" : "toca_registro_google",
+          "required" : false,
+          "schema" : {
+            "type" : [ "string", "null" ]
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DatosRegistroGoogleDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "auth-controller" ]
+      },
+      "post" : {
+        "operationId" : "authCompletarRegistroGoogle",
+        "parameters" : [ {
+          "in" : "cookie",
+          "name" : "toca_registro_google",
+          "required" : false,
+          "schema" : {
+            "type" : [ "string", "null" ]
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RegistroGoogleRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LoginResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "auth-controller" ]
+      }
+    },
+    "/api/auth/google/vincular" : {
+      "get" : {
+        "operationId" : "authVinculacionGooglePendiente",
+        "parameters" : [ {
+          "in" : "cookie",
+          "name" : "toca_vincular_google",
+          "required" : false,
+          "schema" : {
+            "type" : [ "string", "null" ]
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DatosVinculacionGoogleDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "auth-controller" ]
+      },
+      "post" : {
+        "operationId" : "authVincularGoogle",
+        "parameters" : [ {
+          "in" : "cookie",
+          "name" : "toca_vincular_google",
+          "required" : false,
+          "schema" : {
+            "type" : [ "string", "null" ]
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/VincularGoogleRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LoginResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "auth-controller" ]
+      }
+    },
+    "/api/auth/login" : {
+      "post" : {
+        "operationId" : "authLogin",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LoginResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "auth-controller" ]
+      }
+    },
+    "/api/auth/logout" : {
+      "post" : {
+        "operationId" : "authLogout",
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "auth-controller" ]
+      }
+    },
+    "/api/auth/password/olvido" : {
+      "post" : {
+        "operationId" : "authOlvidoPassword",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OlvidoPasswordRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MensajeRespuesta"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "auth-controller" ]
+      }
+    },
+    "/api/auth/password/restablecer" : {
+      "post" : {
+        "operationId" : "authRestablecerPassword",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RestablecerPasswordRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MensajeRespuesta"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "auth-controller" ]
+      }
+    },
+    "/api/auth/proveedores" : {
+      "get" : {
+        "operationId" : "authProveedores",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProveedoresDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "auth-controller" ]
+      }
+    },
+    "/api/auth/registro" : {
+      "post" : {
+        "operationId" : "authRegistro",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RegistroRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PerfilDto"
+                }
+              }
+            },
+            "description" : "Created"
+          }
+        },
+        "tags" : [ "auth-controller" ]
+      }
+    },
+    "/api/auth/sesion" : {
+      "get" : {
+        "operationId" : "authSesion",
+        "parameters" : [ {
+          "in" : "cookie",
+          "name" : "toca_sesion",
+          "required" : false,
+          "schema" : {
+            "type" : [ "string", "null" ]
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LoginResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "auth-controller" ]
+      }
+    },
+    "/api/consumos" : {
+      "get" : {
+        "operationId" : "consumoHistorial",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0,
+            "minimum" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 9,
+            "maximum" : 100,
+            "minimum" : 1
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PaginaConsumoDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "consumo-controller" ]
+      },
+      "post" : {
+        "operationId" : "consumoRegistrar",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ConsumoRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ConsumoDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "consumo-controller" ]
+      }
+    },
+    "/api/consumos/{id}" : {
+      "delete" : {
+        "operationId" : "consumoBorrar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "consumo-controller" ]
+      },
+      "put" : {
+        "operationId" : "consumoCambiarFecha",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/FechaConsumoRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ConsumoDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "consumo-controller" ]
+      }
+    },
+    "/api/grupos" : {
+      "get" : {
+        "operationId" : "catalogoGrupos",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/GrupoDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "catalogo-controller" ]
+      }
+    },
+    "/api/imagenes/{nombre}" : {
+      "get" : {
+        "operationId" : "imagenImagen",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "nombre",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "ancho",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "string",
+                  "format" : "binary"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "imagen-controller" ]
+      }
+    },
+    "/api/ingredientes" : {
+      "get" : {
+        "operationId" : "ingredienteListar",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "nombre",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "grupo",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "in" : "query",
+          "name" : "sinAlimento",
+          "required" : false,
+          "schema" : {
+            "type" : "boolean",
+            "default" : false
+          }
+        }, {
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0,
+            "minimum" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 16,
+            "maximum" : 100,
+            "minimum" : 1
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PaginaIngredienteDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "ingrediente-controller" ]
+      },
+      "post" : {
+        "operationId" : "ingredienteCrear",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/IngredienteRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/IngredienteDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "ingrediente-controller" ]
+      }
+    },
+    "/api/ingredientes/sugerencias" : {
+      "get" : {
+        "operationId" : "ingredienteSugerencias",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "q",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "default" : "",
+            "maxLength" : 100,
+            "minLength" : 0
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/IngredienteDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "ingrediente-controller" ]
+      }
+    },
+    "/api/ingredientes/{id}" : {
+      "put" : {
+        "operationId" : "ingredienteEditar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/IngredienteRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/IngredienteDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "ingrediente-controller" ]
+      }
+    },
+    "/api/plan" : {
+      "get" : {
+        "operationId" : "planPlan",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "desde",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }, {
+          "in" : "query",
+          "name" : "hasta",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PlanDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "plan-controller" ]
+      },
+      "post" : {
+        "operationId" : "planAnadir",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ComidaPlanRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ComidaPlanificadaDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "plan-controller" ]
+      }
+    },
+    "/api/plan/compra" : {
+      "get" : {
+        "operationId" : "planCompra",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "desde",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }, {
+          "in" : "query",
+          "name" : "hasta",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ListaCompraDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "plan-controller" ]
+      }
+    },
+    "/api/plan/{id}" : {
+      "delete" : {
+        "operationId" : "planBorrar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "plan-controller" ]
+      }
+    },
+    "/api/plan/{id}/consumir" : {
+      "post" : {
+        "operationId" : "planConsumir",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ConsumoDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "plan-controller" ]
+      }
+    },
+    "/api/push/clave" : {
+      "get" : {
+        "operationId" : "pushClave",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ClavePushDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "push-controller" ]
+      }
+    },
+    "/api/push/prueba" : {
+      "post" : {
+        "operationId" : "pushProbar",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PruebaPushDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "push-controller" ]
+      }
+    },
+    "/api/push/suscripcion" : {
+      "delete" : {
+        "operationId" : "pushDesuscribir",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "endpoint",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "push-controller" ]
+      },
+      "put" : {
+        "operationId" : "pushSuscribir",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SuscripcionPushRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "push-controller" ]
+      }
+    },
+    "/api/recetas" : {
+      "get" : {
+        "operationId" : "recetaListar",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "titulo",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "tipo",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "in" : "query",
+          "name" : "usuario",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "maxLength" : 30,
+            "minLength" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "dificultad",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "comensales",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "minimum" : 1
+          }
+        }, {
+          "in" : "query",
+          "name" : "tiempoMax",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "minimum" : 1
+          }
+        }, {
+          "in" : "query",
+          "name" : "ingredientes",
+          "required" : false,
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "integer",
+              "format" : "int32"
+            },
+            "maxItems" : 50,
+            "minItems" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0,
+            "minimum" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 9,
+            "maximum" : 100,
+            "minimum" : 1
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PaginaRecetaResumenDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "receta-controller" ]
+      },
+      "post" : {
+        "operationId" : "recetaCrear",
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "fotos" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string",
+                      "format" : "binary"
+                    }
+                  },
+                  "receta" : {
+                    "$ref" : "#/components/schemas/RecetaRequest"
+                  }
+                },
+                "required" : [ "receta" ]
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RecetaDetalleDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "receta-controller" ]
+      }
+    },
+    "/api/recetas/me-gustan" : {
+      "get" : {
+        "operationId" : "recetaMeGustan",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "titulo",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "tipo",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "in" : "query",
+          "name" : "usuario",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "maxLength" : 30,
+            "minLength" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "dificultad",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "comensales",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "minimum" : 1
+          }
+        }, {
+          "in" : "query",
+          "name" : "tiempoMax",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "minimum" : 1
+          }
+        }, {
+          "in" : "query",
+          "name" : "ingredientes",
+          "required" : false,
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "integer",
+              "format" : "int32"
+            },
+            "maxItems" : 50,
+            "minItems" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0,
+            "minimum" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 9,
+            "maximum" : 100,
+            "minimum" : 1
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PaginaRecetaResumenDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "receta-controller" ]
+      }
+    },
+    "/api/recetas/mejor-valoradas" : {
+      "get" : {
+        "operationId" : "recetaMejorValoradas",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 3,
+            "maximum" : 20,
+            "minimum" : 1
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/RecetaResumenDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "receta-controller" ]
+      }
+    },
+    "/api/recetas/mias" : {
+      "get" : {
+        "operationId" : "recetaMias",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "titulo",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "tipo",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "in" : "query",
+          "name" : "usuario",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "maxLength" : 30,
+            "minLength" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "dificultad",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "comensales",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "minimum" : 1
+          }
+        }, {
+          "in" : "query",
+          "name" : "tiempoMax",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "minimum" : 1
+          }
+        }, {
+          "in" : "query",
+          "name" : "ingredientes",
+          "required" : false,
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "integer",
+              "format" : "int32"
+            },
+            "maxItems" : 50,
+            "minItems" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0,
+            "minimum" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 9,
+            "maximum" : 100,
+            "minimum" : 1
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PaginaRecetaResumenDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "receta-controller" ]
+      }
+    },
+    "/api/recetas/recomendadas" : {
+      "get" : {
+        "operationId" : "recomendacionRecomendadas",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "titulo",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "tipo",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "in" : "query",
+          "name" : "usuario",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "maxLength" : 30,
+            "minLength" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "dificultad",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "comensales",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "minimum" : 1
+          }
+        }, {
+          "in" : "query",
+          "name" : "tiempoMax",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "minimum" : 1
+          }
+        }, {
+          "in" : "query",
+          "name" : "ingredientes",
+          "required" : false,
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "integer",
+              "format" : "int32"
+            },
+            "maxItems" : 50,
+            "minItems" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0,
+            "minimum" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 9,
+            "maximum" : 100,
+            "minimum" : 1
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PaginaRecetaRecomendadaDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "recomendacion-controller" ]
+      }
+    },
+    "/api/recetas/sugerencias" : {
+      "get" : {
+        "operationId" : "recetaSugerencias",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "q",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "default" : "",
+            "maxLength" : 100,
+            "minLength" : 0
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/SugerenciaRecetaDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "receta-controller" ]
+      }
+    },
+    "/api/recetas/ultimas" : {
+      "get" : {
+        "operationId" : "recetaUltimas",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 3,
+            "maximum" : 20,
+            "minimum" : 1
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/RecetaResumenDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "receta-controller" ]
+      }
+    },
+    "/api/recetas/{id}" : {
+      "delete" : {
+        "operationId" : "recetaEliminar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "receta-controller" ]
+      },
+      "get" : {
+        "operationId" : "recetaDetalle",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RecetaDetalleDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "receta-controller" ]
+      },
+      "put" : {
+        "operationId" : "recetaEditar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "fotos" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string",
+                      "format" : "binary"
+                    }
+                  },
+                  "receta" : {
+                    "$ref" : "#/components/schemas/RecetaRequest"
+                  }
+                },
+                "required" : [ "receta" ]
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RecetaDetalleDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "receta-controller" ]
+      }
+    },
+    "/api/recetas/{id}/impacto" : {
+      "get" : {
+        "operationId" : "recomendacionImpacto",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ImpactoGrupoDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "recomendacion-controller" ]
+      }
+    },
+    "/api/recetas/{id}/like" : {
+      "delete" : {
+        "operationId" : "recetaQuitarLike",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LikesDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "receta-controller" ]
+      },
+      "post" : {
+        "operationId" : "recetaDarLike",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LikesDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "receta-controller" ]
+      }
+    },
+    "/api/recetas/{id}/nutricion" : {
+      "get" : {
+        "operationId" : "nutricionDeReceta",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NutricionRecetaDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "nutricion-controller" ]
+      }
+    },
+    "/api/recetas/{id}/publicada" : {
+      "patch" : {
+        "operationId" : "recetaPublicar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PublicacionRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RecetaDetalleDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "receta-controller" ]
+      }
+    },
+    "/api/recetas/{id}/valoracion" : {
+      "delete" : {
+        "operationId" : "valoracionBorrar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ResumenValoracionesDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "valoracion-controller" ]
+      },
+      "put" : {
+        "operationId" : "valoracionValorar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ValoracionRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ResumenValoracionesDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "valoracion-controller" ]
+      }
+    },
+    "/api/recetas/{id}/valoraciones" : {
+      "get" : {
+        "operationId" : "valoracionListar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0,
+            "minimum" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 5,
+            "maximum" : 100,
+            "minimum" : 1
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PaginaValoracionDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "valoracion-controller" ]
+      }
+    },
+    "/api/tipos-receta" : {
+      "get" : {
+        "operationId" : "catalogoTiposReceta",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/TipoRecetaDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "catalogo-controller" ]
+      }
+    },
+    "/api/usuarios/me" : {
+      "get" : {
+        "operationId" : "usuarioPerfil",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PerfilDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "usuario-controller" ]
+      },
+      "put" : {
+        "operationId" : "usuarioActualizar",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ActualizarPerfilRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PerfilDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "usuario-controller" ]
+      }
+    },
+    "/api/usuarios/me/baja" : {
+      "post" : {
+        "operationId" : "cuentaBaja",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/BajaRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "cuenta-controller" ]
+      }
+    },
+    "/api/usuarios/me/datos" : {
+      "get" : {
+        "operationId" : "cuentaDatos",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DatosPersonalesDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "cuenta-controller" ]
+      }
+    },
+    "/api/usuarios/me/desvincular-google" : {
+      "post" : {
+        "operationId" : "usuarioDesvincularGoogle",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DesvincularGoogleRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PerfilDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "usuario-controller" ]
+      }
+    },
+    "/api/usuarios/me/email/confirmacion" : {
+      "post" : {
+        "operationId" : "usuarioReenviarConfirmacion",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EnlaceEnviadoDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "usuario-controller" ]
+      }
+    },
+    "/api/usuarios/me/email/pendiente" : {
+      "delete" : {
+        "operationId" : "usuarioCancelarCambioEmail",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PerfilDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "usuario-controller" ]
+      }
+    },
+    "/api/usuarios/me/password" : {
+      "put" : {
+        "operationId" : "usuarioCambiarPassword",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CambioPasswordRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "usuario-controller" ]
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "Actividad" : {
+        "type" : "object",
+        "properties" : {
+          "fecha" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "receta" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "titulo" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "fecha", "receta", "titulo" ]
+      },
+      "ActualizarPerfilRequest" : {
+        "type" : "object",
+        "properties" : {
+          "apellido1" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "apellido2" : {
+            "type" : [ "string", "null" ],
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "email" : {
+            "type" : "string",
+            "format" : "email",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "nombre" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "password" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "apellido1", "apellido2", "email", "nombre", "password" ]
+      },
+      "AlimentoBedcaDto" : {
+        "type" : "object",
+        "properties" : {
+          "energiaKcal" : {
+            "type" : [ "number", "null" ]
+          },
+          "energiaKj" : {
+            "type" : [ "number", "null" ]
+          },
+          "fibra" : {
+            "type" : [ "number", "null" ]
+          },
+          "grasas" : {
+            "type" : [ "number", "null" ]
+          },
+          "grasasSaturadas" : {
+            "type" : [ "number", "null" ]
+          },
+          "hidratos" : {
+            "type" : [ "number", "null" ]
+          },
+          "id" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "nombre" : {
+            "type" : "string"
+          },
+          "proteinas" : {
+            "type" : [ "number", "null" ]
+          },
+          "sodioMg" : {
+            "type" : [ "number", "null" ]
+          }
+        },
+        "required" : [ "energiaKcal", "energiaKj", "fibra", "grasas", "grasasSaturadas", "hidratos", "id", "nombre", "proteinas", "sodioMg" ]
+      },
+      "ArticuloCompraDto" : {
+        "type" : "object",
+        "properties" : {
+          "cantidades" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CantidadCompraDto"
+            }
+          },
+          "ingrediente" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "nombre" : {
+            "type" : "string"
+          },
+          "total" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "cantidades", "ingrediente", "nombre", "total" ]
+      },
+      "Aviso" : {
+        "type" : "object",
+        "properties" : {
+          "fecha" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "servicio" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "fecha", "servicio" ]
+      },
+      "BajaRequest" : {
+        "type" : "object",
+        "properties" : {
+          "password" : {
+            "type" : "string",
+            "minLength" : 1
+          }
+        },
+        "required" : [ "password" ]
+      },
+      "CambioAdminRequest" : {
+        "type" : "object",
+        "properties" : {
+          "admin" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "admin" ]
+      },
+      "CambioBloqueoRequest" : {
+        "type" : "object",
+        "properties" : {
+          "bloqueado" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "bloqueado" ]
+      },
+      "CambioPasswordRequest" : {
+        "type" : "object",
+        "properties" : {
+          "actual" : {
+            "type" : "string",
+            "minLength" : 1
+          },
+          "nueva" : {
+            "type" : "string",
+            "maxLength" : 72,
+            "minLength" : 8
+          }
+        },
+        "required" : [ "actual", "nueva" ]
+      },
+      "CantidadCompraDto" : {
+        "type" : "object",
+        "properties" : {
+          "cantidad" : {
+            "type" : "string"
+          },
+          "receta" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "titulo" : {
+            "type" : "string"
+          },
+          "veces" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "cantidad", "receta", "titulo", "veces" ]
+      },
+      "ClavePushDto" : {
+        "type" : "object",
+        "properties" : {
+          "clavePublica" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "clavePublica" ]
+      },
+      "ComidaCompraDto" : {
+        "type" : "object",
+        "properties" : {
+          "fecha" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "receta" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "titulo" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "fecha", "id", "receta", "titulo" ]
+      },
+      "ComidaPlanRequest" : {
+        "type" : "object",
+        "properties" : {
+          "fecha" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "receta" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "fecha", "receta" ]
+      },
+      "ComidaPlanificadaDto" : {
+        "type" : "object",
+        "properties" : {
+          "disponible" : {
+            "type" : "boolean"
+          },
+          "excesos" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/IndicadorGrupoDto"
+            }
+          },
+          "fecha" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "receta" : {
+            "$ref" : "#/components/schemas/RecetaResumenDto"
+          }
+        },
+        "required" : [ "disponible", "excesos", "fecha", "id", "receta" ]
+      },
+      "ConfirmarEmailRequest" : {
+        "type" : "object",
+        "properties" : {
+          "token" : {
+            "type" : "string",
+            "minLength" : 1
+          }
+        },
+        "required" : [ "token" ]
+      },
+      "ConsumoDto" : {
+        "type" : "object",
+        "properties" : {
+          "fecha" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "receta" : {
+            "$ref" : "#/components/schemas/RecetaResumenDto"
+          }
+        },
+        "required" : [ "fecha", "id", "receta" ]
+      },
+      "ConsumoRequest" : {
+        "type" : "object",
+        "properties" : {
+          "fecha" : {
+            "type" : [ "string", "null" ],
+            "format" : "date-time"
+          },
+          "receta" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "fecha", "receta" ]
+      },
+      "DatosPersonalesDto" : {
+        "type" : "object",
+        "properties" : {
+          "avisos" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Aviso"
+            }
+          },
+          "comidasPlanificadas" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Actividad"
+            }
+          },
+          "consumos" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Actividad"
+            }
+          },
+          "exportado" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "meGusta" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Actividad"
+            }
+          },
+          "perfil" : {
+            "$ref" : "#/components/schemas/PerfilDto"
+          },
+          "recetas" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Receta"
+            }
+          },
+          "valoraciones" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Valoracion"
+            }
+          }
+        },
+        "required" : [ "avisos", "comidasPlanificadas", "consumos", "exportado", "meGusta", "perfil", "recetas", "valoraciones" ]
+      },
+      "DatosRegistroGoogleDto" : {
+        "type" : "object",
+        "properties" : {
+          "apellido1" : {
+            "type" : "string"
+          },
+          "apellido2" : {
+            "type" : [ "string", "null" ]
+          },
+          "email" : {
+            "type" : "string"
+          },
+          "nombre" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "apellido1", "apellido2", "email", "nombre" ]
+      },
+      "DatosVinculacionGoogleDto" : {
+        "type" : "object",
+        "properties" : {
+          "email" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "email" ]
+      },
+      "DesvincularGoogleRequest" : {
+        "type" : "object",
+        "properties" : {
+          "password" : {
+            "type" : "string",
+            "minLength" : 1
+          }
+        },
+        "required" : [ "password" ]
+      },
+      "EmailConfirmadoDto" : {
+        "type" : "object",
+        "properties" : {
+          "email" : {
+            "type" : "string"
+          },
+          "usuario" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "email", "usuario" ]
+      },
+      "EnlaceEnviadoDto" : {
+        "type" : "object",
+        "properties" : {
+          "email" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "email" ]
+      },
+      "ErrorRespuesta" : {
+        "type" : "object",
+        "properties" : {
+          "codigo" : {
+            "type" : "string"
+          },
+          "errores" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
+          },
+          "mensaje" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "codigo", "errores", "mensaje" ]
+      },
+      "FechaConsumoRequest" : {
+        "type" : "object",
+        "properties" : {
+          "fecha" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "required" : [ "fecha" ]
+      },
+      "FotoDto" : {
+        "type" : "object",
+        "properties" : {
+          "descripcion" : {
+            "type" : [ "string", "null" ]
+          },
+          "nombre" : {
+            "type" : "string"
+          },
+          "url" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "descripcion", "nombre", "url" ]
+      },
+      "FotoRequest" : {
+        "type" : "object",
+        "properties" : {
+          "descripcion" : {
+            "type" : [ "string", "null" ],
+            "maxLength" : 150,
+            "minLength" : 0
+          },
+          "existente" : {
+            "type" : [ "string", "null" ]
+          },
+          "nueva" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int32",
+            "minimum" : 0
+          }
+        },
+        "required" : [ "descripcion", "existente", "nueva" ]
+      },
+      "FusionDto" : {
+        "type" : "object",
+        "properties" : {
+          "ingrediente" : {
+            "$ref" : "#/components/schemas/IngredienteDto"
+          },
+          "recetas" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "ingrediente", "recetas" ]
+      },
+      "FusionRequest" : {
+        "type" : "object",
+        "properties" : {
+          "destino" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "destino" ]
+      },
+      "GrupoAdminDto" : {
+        "type" : "object",
+        "properties" : {
+          "basico" : {
+            "type" : "boolean"
+          },
+          "id" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "ingredientes" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "nombre" : {
+            "type" : "string"
+          },
+          "racionesSemana" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int32"
+          }
+        },
+        "required" : [ "basico", "id", "ingredientes", "nombre", "racionesSemana" ]
+      },
+      "GrupoDto" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "nombre" : {
+            "type" : "string"
+          },
+          "racionesSemana" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int32"
+          }
+        },
+        "required" : [ "id", "nombre", "racionesSemana" ]
+      },
+      "GrupoRequest" : {
+        "type" : "object",
+        "properties" : {
+          "basico" : {
+            "type" : "boolean"
+          },
+          "nombre" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "racionesSemana" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int32",
+            "maximum" : 99,
+            "minimum" : 1
+          }
+        },
+        "required" : [ "basico", "nombre", "racionesSemana" ]
+      },
+      "ImpactoGrupoDto" : {
+        "type" : "object",
+        "properties" : {
+          "antes" : {
+            "$ref" : "#/components/schemas/IndicadorGrupoDto"
+          },
+          "despues" : {
+            "$ref" : "#/components/schemas/IndicadorGrupoDto"
+          }
+        },
+        "required" : [ "antes", "despues" ]
+      },
+      "IndicadorGrupoDto" : {
+        "type" : "object",
+        "properties" : {
+          "color" : {
+            "type" : "string",
+            "enum" : [ "VERDE", "AMARILLO", "ROJO" ]
+          },
+          "consumidas" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "grupo" : {
+            "$ref" : "#/components/schemas/GrupoDto"
+          },
+          "limite" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int32"
+          },
+          "porcentaje" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "color", "consumidas", "grupo", "limite", "porcentaje" ]
+      },
+      "IngestaReferenciaDto" : {
+        "type" : "object",
+        "properties" : {
+          "energia" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "grasas" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "grasasSaturadas" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "hidratos" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "proteinas" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "sal" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "energia", "grasas", "grasasSaturadas", "hidratos", "proteinas", "sal" ]
+      },
+      "Ingrediente" : {
+        "type" : "object",
+        "properties" : {
+          "cantidad" : {
+            "type" : "string"
+          },
+          "grupo" : {
+            "type" : "string"
+          },
+          "nombre" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "cantidad", "grupo", "nombre" ]
+      },
+      "IngredienteCantidad" : {
+        "type" : "object",
+        "properties" : {
+          "cantidad" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "ingrediente" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "cantidad", "ingrediente" ]
+      },
+      "IngredienteDto" : {
+        "type" : "object",
+        "properties" : {
+          "alimento" : {
+            "type" : [ "string", "null" ]
+          },
+          "grupo" : {
+            "$ref" : "#/components/schemas/GrupoDto"
+          },
+          "id" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "nombre" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "alimento", "grupo", "id", "nombre" ]
+      },
+      "IngredienteNutricionDto" : {
+        "type" : "object",
+        "properties" : {
+          "alimento" : {
+            "type" : [ "string", "null" ]
+          },
+          "cantidad" : {
+            "type" : "string"
+          },
+          "estado" : {
+            "type" : "string",
+            "enum" : [ "CALCULADO", "SIN_DATOS", "SIN_PESO" ]
+          },
+          "gramos" : {
+            "type" : [ "number", "null" ]
+          },
+          "id" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "nombre" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "alimento", "cantidad", "estado", "gramos", "id", "nombre" ]
+      },
+      "IngredienteRecetaDto" : {
+        "type" : "object",
+        "properties" : {
+          "cantidad" : {
+            "type" : "string"
+          },
+          "grupo" : {
+            "$ref" : "#/components/schemas/GrupoDto"
+          },
+          "id" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "nombre" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "cantidad", "grupo", "id", "nombre" ]
+      },
+      "IngredienteRequest" : {
+        "type" : "object",
+        "properties" : {
+          "grupo" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "nombre" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "grupo", "nombre" ]
+      },
+      "IngredienteUsadoDto" : {
+        "type" : "object",
+        "properties" : {
+          "ingrediente" : {
+            "$ref" : "#/components/schemas/IngredienteDto"
+          },
+          "veces" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "ingrediente", "veces" ]
+      },
+      "LikesDto" : {
+        "type" : "object",
+        "properties" : {
+          "likes" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "meGusta" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "likes", "meGusta" ]
+      },
+      "ListaCompraDto" : {
+        "type" : "object",
+        "properties" : {
+          "comidas" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ComidaCompraDto"
+            }
+          },
+          "noDisponibles" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "secciones" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SeccionCompraDto"
+            }
+          }
+        },
+        "required" : [ "comidas", "noDisponibles", "secciones" ]
+      },
+      "LoginRequest" : {
+        "type" : "object",
+        "properties" : {
+          "password" : {
+            "type" : "string",
+            "minLength" : 1
+          },
+          "usuario" : {
+            "type" : "string",
+            "minLength" : 1
+          }
+        },
+        "required" : [ "password", "usuario" ]
+      },
+      "LoginResponse" : {
+        "type" : "object",
+        "properties" : {
+          "caduca" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "usuario" : {
+            "$ref" : "#/components/schemas/UsuarioSesion"
+          }
+        },
+        "required" : [ "caduca", "usuario" ]
+      },
+      "MensajeRespuesta" : {
+        "type" : "object",
+        "properties" : {
+          "mensaje" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "mensaje" ]
+      },
+      "ModeracionRecetaRequest" : {
+        "type" : "object",
+        "properties" : {
+          "motivo" : {
+            "type" : [ "string", "null" ],
+            "maxLength" : 500,
+            "minLength" : 0
+          },
+          "oculta" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "motivo", "oculta" ]
+      },
+      "NutricionIngredienteDto" : {
+        "type" : "object",
+        "properties" : {
+          "alimento" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/AlimentoBedcaDto"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "piezas" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PiezaDto"
+            }
+          }
+        },
+        "required" : [ "alimento", "piezas" ]
+      },
+      "NutricionIngredienteRequest" : {
+        "type" : "object",
+        "properties" : {
+          "alimento" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int32"
+          },
+          "piezas" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PiezaDto"
+            },
+            "maxItems" : 10,
+            "minItems" : 0
+          }
+        },
+        "required" : [ "alimento", "piezas" ]
+      },
+      "NutricionRecetaDto" : {
+        "type" : "object",
+        "properties" : {
+          "comensales" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "ingredientes" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/IngredienteNutricionDto"
+            }
+          },
+          "porRacion" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/ValoresNutricionalesDto"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "total" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/ValoresNutricionalesDto"
+            }, {
+              "type" : "null"
+            } ]
+          }
+        },
+        "required" : [ "comensales", "ingredientes", "porRacion", "total" ]
+      },
+      "NutricionSemanaDto" : {
+        "type" : "object",
+        "properties" : {
+          "consumos" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "estimados" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "mediaDiaria" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/ValoresNutricionalesDto"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "referencia" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/IngestaReferenciaDto"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "total" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/ValoresNutricionalesDto"
+            }, {
+              "type" : "null"
+            } ]
+          }
+        },
+        "required" : [ "consumos", "estimados", "mediaDiaria", "referencia", "total" ]
+      },
+      "OcultarValoracionRequest" : {
+        "type" : "object",
+        "properties" : {
+          "oculta" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "oculta" ]
+      },
+      "OlvidoPasswordRequest" : {
+        "type" : "object",
+        "properties" : {
+          "email" : {
+            "type" : "string",
+            "format" : "email",
+            "minLength" : 1
+          }
+        },
+        "required" : [ "email" ]
+      },
+      "PaginaConsumoDto" : {
+        "type" : "object",
+        "properties" : {
+          "contenido" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ConsumoDto"
+            }
+          },
+          "pagina" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "tamano" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalElementos" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalPaginas" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "contenido", "pagina", "tamano", "totalElementos", "totalPaginas" ]
+      },
+      "PaginaIngredienteDto" : {
+        "type" : "object",
+        "properties" : {
+          "contenido" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/IngredienteDto"
+            }
+          },
+          "pagina" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "tamano" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalElementos" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalPaginas" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "contenido", "pagina", "tamano", "totalElementos", "totalPaginas" ]
+      },
+      "PaginaRecetaRecomendadaDto" : {
+        "type" : "object",
+        "properties" : {
+          "contenido" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RecetaRecomendadaDto"
+            }
+          },
+          "pagina" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "tamano" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalElementos" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalPaginas" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "contenido", "pagina", "tamano", "totalElementos", "totalPaginas" ]
+      },
+      "PaginaRecetaResumenDto" : {
+        "type" : "object",
+        "properties" : {
+          "contenido" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RecetaResumenDto"
+            }
+          },
+          "pagina" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "tamano" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalElementos" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalPaginas" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "contenido", "pagina", "tamano", "totalElementos", "totalPaginas" ]
+      },
+      "PaginaUsuarioAdminDto" : {
+        "type" : "object",
+        "properties" : {
+          "contenido" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/UsuarioAdminDto"
+            }
+          },
+          "pagina" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "tamano" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalElementos" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalPaginas" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "contenido", "pagina", "tamano", "totalElementos", "totalPaginas" ]
+      },
+      "PaginaValoracionDto" : {
+        "type" : "object",
+        "properties" : {
+          "contenido" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ValoracionDto"
+            }
+          },
+          "pagina" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "tamano" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalElementos" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalPaginas" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "contenido", "pagina", "tamano", "totalElementos", "totalPaginas" ]
+      },
+      "PerfilDto" : {
+        "type" : "object",
+        "properties" : {
+          "apellido1" : {
+            "type" : "string"
+          },
+          "apellido2" : {
+            "type" : [ "string", "null" ]
+          },
+          "email" : {
+            "type" : "string"
+          },
+          "emailPendiente" : {
+            "type" : [ "string", "null" ]
+          },
+          "emailVerificado" : {
+            "type" : "boolean"
+          },
+          "google" : {
+            "type" : "boolean"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "nombre" : {
+            "type" : "string"
+          },
+          "roles" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "USER", "ADMIN" ]
+            }
+          }
+        },
+        "required" : [ "apellido1", "apellido2", "email", "emailPendiente", "emailVerificado", "google", "id", "nombre", "roles" ]
+      },
+      "PiezaDto" : {
+        "type" : "object",
+        "properties" : {
+          "gramos" : {
+            "type" : "number",
+            "exclusiveMinimum" : 0,
+            "maximum" : 10000
+          },
+          "pieza" : {
+            "type" : "string",
+            "maxLength" : 30,
+            "minLength" : 0,
+            "pattern" : "\\s*\\p{L}+\\s*"
+          }
+        },
+        "required" : [ "gramos", "pieza" ]
+      },
+      "PlanDto" : {
+        "type" : "object",
+        "properties" : {
+          "comidas" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ComidaPlanificadaDto"
+            }
+          },
+          "indicadores" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/IndicadorGrupoDto"
+            }
+          }
+        },
+        "required" : [ "comidas", "indicadores" ]
+      },
+      "ProveedoresDto" : {
+        "type" : "object",
+        "properties" : {
+          "google" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "google" ]
+      },
+      "PruebaPushDto" : {
+        "type" : "object",
+        "properties" : {
+          "enviados" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "enviados" ]
+      },
+      "PublicacionRequest" : {
+        "type" : "object",
+        "properties" : {
+          "publicada" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "publicada" ]
+      },
+      "Receta" : {
+        "type" : "object",
+        "properties" : {
+          "comensales" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "dificultad" : {
+            "type" : "string"
+          },
+          "fechaCreacion" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "fotos" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "id" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "imagen" : {
+            "type" : [ "string", "null" ]
+          },
+          "ingredientes" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Ingrediente"
+            }
+          },
+          "instrucciones" : {
+            "type" : "string"
+          },
+          "motivoOculta" : {
+            "type" : [ "string", "null" ]
+          },
+          "oculta" : {
+            "type" : "boolean"
+          },
+          "publicada" : {
+            "type" : "boolean"
+          },
+          "tiempo" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "tipo" : {
+            "type" : "string"
+          },
+          "titulo" : {
+            "type" : "string"
+          },
+          "video" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "comensales", "dificultad", "fechaCreacion", "fotos", "id", "imagen", "ingredientes", "instrucciones", "motivoOculta", "oculta", "publicada", "tiempo", "tipo", "titulo", "video" ]
+      },
+      "RecetaConsumidaDto" : {
+        "type" : "object",
+        "properties" : {
+          "receta" : {
+            "$ref" : "#/components/schemas/RecetaResumenDto"
+          },
+          "veces" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "receta", "veces" ]
+      },
+      "RecetaDetalleDto" : {
+        "type" : "object",
+        "properties" : {
+          "autor" : {
+            "type" : [ "string", "null" ]
+          },
+          "comensales" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "dificultad" : {
+            "type" : "string",
+            "enum" : [ "Fácil", "Media", "Difícil" ]
+          },
+          "esAutor" : {
+            "type" : "boolean"
+          },
+          "fechaCreacion" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "fotos" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/FotoDto"
+            }
+          },
+          "grupos" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/GrupoDto"
+            }
+          },
+          "id" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "imagen" : {
+            "type" : [ "string", "null" ]
+          },
+          "ingredientes" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/IngredienteRecetaDto"
+            }
+          },
+          "instrucciones" : {
+            "type" : "string"
+          },
+          "likes" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "maxSemanal" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int32"
+          },
+          "meGusta" : {
+            "type" : "boolean"
+          },
+          "miValoracion" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/ValoracionDto"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "motivoOculta" : {
+            "type" : [ "string", "null" ]
+          },
+          "nota" : {
+            "type" : [ "number", "null" ],
+            "format" : "double"
+          },
+          "oculta" : {
+            "type" : "boolean"
+          },
+          "publicada" : {
+            "type" : "boolean"
+          },
+          "tiempo" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "tipo" : {
+            "$ref" : "#/components/schemas/TipoRecetaDto"
+          },
+          "titulo" : {
+            "type" : "string"
+          },
+          "valoraciones" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "video" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "autor", "comensales", "dificultad", "esAutor", "fechaCreacion", "fotos", "grupos", "id", "imagen", "ingredientes", "instrucciones", "likes", "maxSemanal", "meGusta", "miValoracion", "motivoOculta", "nota", "oculta", "publicada", "tiempo", "tipo", "titulo", "valoraciones", "video" ]
+      },
+      "RecetaRecomendadaDto" : {
+        "type" : "object",
+        "properties" : {
+          "autor" : {
+            "type" : [ "string", "null" ]
+          },
+          "comensales" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "dificultad" : {
+            "type" : "string",
+            "enum" : [ "Fácil", "Media", "Difícil" ]
+          },
+          "eliminada" : {
+            "type" : "boolean"
+          },
+          "fechaCreacion" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "grupos" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/IndicadorGrupoDto"
+            }
+          },
+          "id" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "imagen" : {
+            "type" : [ "string", "null" ]
+          },
+          "likes" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "meGusta" : {
+            "type" : "boolean"
+          },
+          "nota" : {
+            "type" : [ "number", "null" ],
+            "format" : "double"
+          },
+          "oculta" : {
+            "type" : "boolean"
+          },
+          "publicada" : {
+            "type" : "boolean"
+          },
+          "tiempo" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "tipo" : {
+            "$ref" : "#/components/schemas/TipoRecetaDto"
+          },
+          "titulo" : {
+            "type" : "string"
+          },
+          "valoraciones" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "autor", "comensales", "dificultad", "eliminada", "fechaCreacion", "grupos", "id", "imagen", "likes", "meGusta", "nota", "oculta", "publicada", "tiempo", "tipo", "titulo", "valoraciones" ]
+      },
+      "RecetaRequest" : {
+        "type" : "object",
+        "properties" : {
+          "comensales" : {
+            "type" : "integer",
+            "format" : "int32",
+            "maximum" : 100,
+            "minimum" : 1
+          },
+          "dificultad" : {
+            "type" : "string",
+            "enum" : [ "Fácil", "Media", "Difícil" ],
+            "pattern" : "Fácil|Media|Difícil"
+          },
+          "fotos" : {
+            "type" : [ "array", "null" ],
+            "items" : {
+              "$ref" : "#/components/schemas/FotoRequest"
+            },
+            "maxItems" : 6,
+            "minItems" : 0
+          },
+          "ingredientes" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/IngredienteCantidad"
+            },
+            "maxItems" : 50,
+            "minItems" : 1
+          },
+          "instrucciones" : {
+            "type" : "string",
+            "maxLength" : 20000,
+            "minLength" : 0
+          },
+          "tiempo" : {
+            "type" : "integer",
+            "format" : "int32",
+            "maximum" : 1440,
+            "minimum" : 1
+          },
+          "tipo" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "titulo" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "video" : {
+            "type" : [ "string", "null" ],
+            "maxLength" : 500,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "comensales", "dificultad", "fotos", "ingredientes", "instrucciones", "tiempo", "tipo", "titulo", "video" ]
+      },
+      "RecetaResumenDto" : {
+        "type" : "object",
+        "properties" : {
+          "autor" : {
+            "type" : [ "string", "null" ]
+          },
+          "comensales" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "dificultad" : {
+            "type" : "string",
+            "enum" : [ "Fácil", "Media", "Difícil" ]
+          },
+          "eliminada" : {
+            "type" : "boolean"
+          },
+          "fechaCreacion" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "imagen" : {
+            "type" : [ "string", "null" ]
+          },
+          "likes" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "meGusta" : {
+            "type" : "boolean"
+          },
+          "nota" : {
+            "type" : [ "number", "null" ],
+            "format" : "double"
+          },
+          "oculta" : {
+            "type" : "boolean"
+          },
+          "publicada" : {
+            "type" : "boolean"
+          },
+          "tiempo" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "tipo" : {
+            "$ref" : "#/components/schemas/TipoRecetaDto"
+          },
+          "titulo" : {
+            "type" : "string"
+          },
+          "valoraciones" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "autor", "comensales", "dificultad", "eliminada", "fechaCreacion", "id", "imagen", "likes", "meGusta", "nota", "oculta", "publicada", "tiempo", "tipo", "titulo", "valoraciones" ]
+      },
+      "RegistroGoogleRequest" : {
+        "type" : "object",
+        "properties" : {
+          "apellido1" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "apellido2" : {
+            "type" : [ "string", "null" ],
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "id" : {
+            "type" : "string",
+            "maxLength" : 30,
+            "minLength" : 3,
+            "pattern" : "[a-zA-Z0-9._-]*"
+          },
+          "nombre" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "apellido1", "apellido2", "id", "nombre" ]
+      },
+      "RegistroRequest" : {
+        "type" : "object",
+        "properties" : {
+          "apellido1" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "apellido2" : {
+            "type" : [ "string", "null" ],
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "email" : {
+            "type" : "string",
+            "format" : "email",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "id" : {
+            "type" : "string",
+            "maxLength" : 30,
+            "minLength" : 3,
+            "pattern" : "[a-zA-Z0-9._-]*"
+          },
+          "nombre" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "password" : {
+            "type" : "string",
+            "maxLength" : 72,
+            "minLength" : 8
+          }
+        },
+        "required" : [ "apellido1", "apellido2", "email", "id", "nombre", "password" ]
+      },
+      "RestablecerPasswordRequest" : {
+        "type" : "object",
+        "properties" : {
+          "password" : {
+            "type" : "string",
+            "maxLength" : 72,
+            "minLength" : 8
+          },
+          "token" : {
+            "type" : "string",
+            "minLength" : 1
+          }
+        },
+        "required" : [ "password", "token" ]
+      },
+      "ResumenAlimentacionDto" : {
+        "type" : "object",
+        "properties" : {
+          "grupos7Dias" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/IndicadorGrupoDto"
+            }
+          },
+          "ingredientesMasUsados" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/IngredienteUsadoDto"
+            }
+          },
+          "masConsumidas" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RecetaConsumidaDto"
+            }
+          },
+          "ultimas" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ConsumoDto"
+            }
+          }
+        },
+        "required" : [ "grupos7Dias", "ingredientesMasUsados", "masConsumidas", "ultimas" ]
+      },
+      "ResumenValoracionesDto" : {
+        "type" : "object",
+        "properties" : {
+          "mia" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/ValoracionDto"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "nota" : {
+            "type" : [ "number", "null" ],
+            "format" : "double"
+          },
+          "valoraciones" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "mia", "nota", "valoraciones" ]
+      },
+      "SeccionCompraDto" : {
+        "type" : "object",
+        "properties" : {
+          "articulos" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ArticuloCompraDto"
+            }
+          },
+          "basico" : {
+            "type" : "boolean"
+          },
+          "grupo" : {
+            "$ref" : "#/components/schemas/GrupoDto"
+          }
+        },
+        "required" : [ "articulos", "basico", "grupo" ]
+      },
+      "SugerenciaRecetaDto" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "titulo" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "id", "titulo" ]
+      },
+      "SuscripcionPushRequest" : {
+        "type" : "object",
+        "properties" : {
+          "auth" : {
+            "type" : "string",
+            "maxLength" : 50,
+            "minLength" : 0
+          },
+          "endpoint" : {
+            "type" : "string",
+            "maxLength" : 1000,
+            "minLength" : 0
+          },
+          "p256dh" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "zona" : {
+            "type" : [ "string", "null" ],
+            "maxLength" : 50,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "auth", "endpoint", "p256dh", "zona" ]
+      },
+      "TipoRecetaDto" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "nombre" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "id", "nombre" ]
+      },
+      "UsuarioAdminDto" : {
+        "type" : "object",
+        "properties" : {
+          "admin" : {
+            "type" : "boolean"
+          },
+          "apellido1" : {
+            "type" : "string"
+          },
+          "apellido2" : {
+            "type" : [ "string", "null" ]
+          },
+          "bloqueado" : {
+            "type" : "boolean"
+          },
+          "email" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "nombre" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "admin", "apellido1", "apellido2", "bloqueado", "email", "id", "nombre" ]
+      },
+      "UsuarioSesion" : {
+        "type" : "object",
+        "properties" : {
+          "emailVerificado" : {
+            "type" : "boolean"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "nombre" : {
+            "type" : "string"
+          },
+          "roles" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "USER", "ADMIN" ]
+            }
+          }
+        },
+        "required" : [ "emailVerificado", "id", "nombre", "roles" ]
+      },
+      "Valoracion" : {
+        "type" : "object",
+        "properties" : {
+          "comentario" : {
+            "type" : [ "string", "null" ]
+          },
+          "fecha" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "nota" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "oculta" : {
+            "type" : "boolean"
+          },
+          "receta" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "titulo" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "comentario", "fecha", "nota", "oculta", "receta", "titulo" ]
+      },
+      "ValoracionDto" : {
+        "type" : "object",
+        "properties" : {
+          "comentario" : {
+            "type" : [ "string", "null" ]
+          },
+          "fecha" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "nota" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "oculta" : {
+            "type" : "boolean"
+          },
+          "usuario" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "comentario", "fecha", "id", "nota", "oculta", "usuario" ]
+      },
+      "ValoracionRequest" : {
+        "type" : "object",
+        "properties" : {
+          "comentario" : {
+            "type" : [ "string", "null" ],
+            "maxLength" : 1000,
+            "minLength" : 0
+          },
+          "nota" : {
+            "type" : "integer",
+            "format" : "int32",
+            "maximum" : 5,
+            "minimum" : 1
+          }
+        },
+        "required" : [ "comentario", "nota" ]
+      },
+      "ValoresNutricionalesDto" : {
+        "type" : "object",
+        "properties" : {
+          "energiaKcal" : {
+            "type" : "number"
+          },
+          "energiaKj" : {
+            "type" : "number"
+          },
+          "fibra" : {
+            "type" : "number"
+          },
+          "grasas" : {
+            "type" : "number"
+          },
+          "grasasSaturadas" : {
+            "type" : "number"
+          },
+          "hidratos" : {
+            "type" : "number"
+          },
+          "proteinas" : {
+            "type" : "number"
+          },
+          "sal" : {
+            "type" : "number"
+          }
+        },
+        "required" : [ "energiaKcal", "energiaKj", "fibra", "grasas", "grasasSaturadas", "hidratos", "proteinas", "sal" ]
+      },
+      "VincularGoogleRequest" : {
+        "type" : "object",
+        "properties" : {
+          "password" : {
+            "type" : "string",
+            "minLength" : 1
+          }
+        },
+        "required" : [ "password" ]
+      }
+    },
+    "securitySchemes" : {
+      "bearerAuth" : {
+        "bearerFormat" : "JWT",
+        "scheme" : "bearer",
+        "type" : "http"
+      }
+    }
+  }
+}

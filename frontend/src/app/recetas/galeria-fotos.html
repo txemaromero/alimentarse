@@ -1,0 +1,62 @@
+@if (actual(); as foto) {
+  <figure class="mb-3 galeria">
+    <div class="marco-imagen rounded-3">
+      <img
+        [src]="urlImagen(foto.url, 1200)"
+        [srcset]="srcsetImagen(foto.url)"
+        sizes="(min-width: 992px) 66vw, 100vw"
+        [alt]="alt(foto, indice())"
+      />
+      @if (fotos().length > 1) {
+        <button
+          type="button"
+          class="btn flecha anterior d-print-none"
+          aria-label="Foto anterior"
+          title="Foto anterior"
+          (click)="anterior()"
+        >
+          <fa-icon [icon]="iconos.anterior" />
+        </button>
+        <button
+          type="button"
+          class="btn flecha siguiente d-print-none"
+          aria-label="Foto siguiente"
+          title="Foto siguiente"
+          (click)="siguiente()"
+        >
+          <fa-icon [icon]="iconos.siguiente" />
+        </button>
+        <span class="contador d-print-none" aria-hidden="true"
+          >{{ indice() + 1 }} / {{ fotos().length }}</span
+        >
+      }
+    </div>
+    @if (foto.descripcion) {
+      <figcaption class="small text-body-secondary mt-1">{{ foto.descripcion }}</figcaption>
+    }
+    @if (fotos().length > 1) {
+      <ul class="list-unstyled d-flex flex-wrap gap-2 mt-2 mb-0 miniaturas d-print-none">
+        @for (f of fotos(); track f.nombre; let i = $index) {
+          <li>
+            <button
+              type="button"
+              class="miniatura"
+              [class.activa]="i === indice()"
+              [attr.aria-current]="i === indice() ? 'true' : null"
+              [attr.aria-label]="etiquetaMiniatura(f, i)"
+              (click)="ver(i)"
+            >
+              <img [src]="urlImagen(f.url, 400)" alt="" />
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </figure>
+} @else {
+  <div class="marco-imagen rounded-3 mb-3">
+    <span class="sin-imagen" role="img" aria-label="Receta sin foto">
+      <fa-icon [icon]="iconos.sinImagen" size="4x" />
+    </span>
+  </div>
+}

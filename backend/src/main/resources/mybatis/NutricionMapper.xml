@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="es.alimentarse.alimentacion.NutricionMapper">
+
+    <resultMap id="recetaComensales" type="es.alimentarse.alimentacion.RecetaComensales">
+        <constructor>
+            <idArg column="ID" javaType="_int" name="receta"/>
+            <arg column="COMENSALES" javaType="_int" name="comensales"/>
+        </constructor>
+    </resultMap>
+
+    <select id="comensales" resultMap="recetaComensales">
+        SELECT ID, COMENSALES FROM recetas WHERE ID IN
+        <foreach item="receta" collection="recetas" open="(" separator="," close=")">#{receta}</foreach>
+    </select>
+
+    <!-- Una fila por receta e ingrediente: las dos columnas forman su clave -->
+    <resultMap id="ingredienteNutricion" type="es.alimentarse.alimentacion.IngredienteNutricion">
+        <constructor>
+            <idArg column="RECETA" javaType="_int" name="receta"/>
+            <idArg column="INGREDIENTE" javaType="_int" name="ingrediente"/>
+            <arg column="NOMBRE" javaType="string" name="nombre"/>
+            <arg column="CANTIDAD" javaType="string" name="cantidad"/>
+            <arg column="BEDCA_NOMBRE" javaType="string" name="alimento"/>
+            <arg column="ENERGIA_KJ" javaType="java.math.BigDecimal" name="energiaKj"/>
+            <arg column="GRASAS" javaType="java.math.BigDecimal" name="grasas"/>
+            <arg column="GRASAS_SATURADAS" javaType="java.math.BigDecimal" name="grasasSaturadas"/>
+            <arg column="HIDRATOS" javaType="java.math.BigDecimal" name="hidratos"/>
+            <arg column="FIBRA" javaType="java.math.BigDecimal" name="fibra"/>
+            <arg column="PROTEINAS" javaType="java.math.BigDecimal" name="proteinas"/>
+            <arg column="SODIO_MG" javaType="java.math.BigDecimal" name="sodioMg"/>
+        </constructor>
+    </resultMap>
+
+    <select id="ingredientes" resultMap="ingredienteNutricion">
+        SELECT ir.RECETA, i.ID AS INGREDIENTE, i.NOMBRE, ir.CANTIDAD,
+               a.NOMBRE AS BEDCA_NOMBRE, a.ENERGIA_KJ, a.GRASAS, a.GRASAS_SATURADAS, a.HIDRATOS, a.FIBRA,
+               a.PROTEINAS, a.SODIO_MG
+        FROM ingrediente_receta ir
+        JOIN ingredientes i ON i.ID = ir.INGREDIENTE
+        LEFT JOIN ingrediente_alimento ia ON ia.INGREDIENTE = i.ID
+        LEFT JOIN alimento_bedca a ON a.ID = ia.ALIMENTO
+        WHERE ir.RECETA IN
+        <foreach item="receta" collection="recetas" open="(" separator="," close=")">#{receta}</foreach>
+        ORDER BY ir.RECETA, i.NOMBRE, i.ID
+    </select>
+
+    <resultMap id="pesoPieza" type="es.alimentarse.alimentacion.PesoPieza">
+        <constructor>
+            <idArg column="INGREDIENTE" javaType="_int" name="ingrediente"/>
+            <idArg column="PIEZA" javaType="string" name="pieza"/>
+            <arg column="GRAMOS" javaType="java.math.BigDecimal" name="gramos"/>
+        </constructor>
+    </resultMap>
+
+    <select id="piezas" resultMap="pesoPieza">
+        SELECT DISTINCT p.INGREDIENTE, p.PIEZA, p.GRAMOS
+        FROM peso_pieza_ingrediente p
+        JOIN ingrediente_receta ir ON ir.INGREDIENTE = p.INGREDIENTE
+        WHERE ir.RECETA IN
+        <foreach item="receta" collection="recetas" open="(" separator="," close=")">#{receta}</foreach>
+    </select>
+
+    <select id="recetasConsumidas" resultType="_int">
+        SELECT RECETA FROM usuario_receta_consumida
+        WHERE USUARIO = #{usuario}
+          AND FECHA BETWEEN #{desde} AND #{hasta}
+        ORDER BY FECHA, ID
+    </select>
+</mapper>

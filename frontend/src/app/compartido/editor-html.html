@@ -1,0 +1,34 @@
+<div class="editor" [class.invalido]="invalido()" [class.deshabilitado]="deshabilitado()">
+  <div class="barra" role="toolbar" aria-label="Formato del texto" [attr.aria-controls]="idCampo()">
+    @for (boton of botones; track boton.id) {
+      <button
+        type="button"
+        class="btn btn-sm"
+        [class.active]="activo(boton)"
+        [attr.aria-pressed]="activo(boton)"
+        [title]="boton.titulo"
+        [attr.aria-label]="boton.titulo"
+        [disabled]="deshabilitado()"
+        (mousedown)="$event.preventDefault()"
+        (click)="ejecutar(boton)"
+      >
+        <fa-icon [icon]="boton.icono" />
+      </button>
+    }
+    <span class="separador" aria-hidden="true"></span>
+    @for (boton of historial; track boton.id) {
+      <button
+        type="button"
+        class="btn btn-sm"
+        [title]="boton.titulo"
+        [attr.aria-label]="boton.titulo"
+        [disabled]="deshabilitado()"
+        (mousedown)="$event.preventDefault()"
+        (click)="ejecutar(boton)"
+      >
+        <fa-icon [icon]="boton.icono" />
+      </button>
+    }
+  </div>
+  <div #area class="area"></div>
+</div>

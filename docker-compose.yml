@@ -1,0 +1,101 @@
+# Servicios para desarrollar y desplegar con Docker. Las variables salen del fichero .env.
+#   docker compose up -d                   MySQL 8.4 + Mailpit (desarrollo: la aplicación se arranca aparte)
+#   docker compose --profile full up -d    además, la aplicación completa (Dockerfile) en http://localhost:8080
+# Si tienes un MySQL local escuchando en el 3306, páralo antes o cambia el puerto publicado.
+# Las imágenes van fijadas por digest (D-090); Dependabot propone cada semana el digest nuevo de la misma etiqueta.
+name: alimentarse
+
+services:
+  mysql:
+    image: mysql:8.4@sha256:a81d043930e51745522bd5c430961cf8286f0a23f0a9a2a6e0108f7ea71b0902
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: toca
+      MYSQL_USER: ${DB_USER:-toca}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Define DB_PASSWORD en .env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Define MYSQL_ROOT_PASSWORD en .env}
+      TZ: Europe/Madrid
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+    # Solo en este equipo (D-089): la aplicación llega a MySQL por la red de Compose
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:v1.33.1@sha256:aef2aacc11f075ec0fb6874275ee4a421e688e11a96ebb296134d1735c7761ce
+    restart: unless-stopped
+    # Solo en este equipo (D-089): Mailpit no pide contraseña y muestra los enlaces de los correos (confirmar el
+    # email, restablecer la contraseña)
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+
+  # Aplicación completa (API + frontend). Solo con --profile full.
+  app:
+    profiles: ["full"]
+    build: .
+    image: alimentarse:latest
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    # Sin env_file (D-090): el contenedor recibe solo estas variables, no todo el .env (MYSQL_ROOT_PASSWORD,
+    # TEST_DB_URL…). Una variable nueva de la aplicación se añade aquí.
+    environment:
+      # Dentro de la red de Compose los servicios se llaman por su nombre
+      DB_URL: jdbc:mysql://mysql:3306/toca
+      DB_USER: ${DB_USER:-toca}
+      DB_PASSWORD: ${DB_PASSWORD:?Define DB_PASSWORD en .env}
+      # Sin JWT_SECRET la aplicación no arranca, y lo dice
+      JWT_SECRET: ${JWT_SECRET:-}
+      JWT_EXPIRATION_HOURS: ${JWT_EXPIRATION_HOURS:-8}
+      ADMIN_INITIAL_PASSWORD: ${ADMIN_INITIAL_PASSWORD:-}
+      ADMIN_INITIAL_EMAIL: ${ADMIN_INITIAL_EMAIL:-admin@toca.local}
+      MAIL_HOST: mailpit
+      MAIL_PORT: "1025"
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-no-reply@toca.local}
+      APP_BASE_URL: ${APP_BASE_URL_DOCKER:-http://localhost:8080}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE_DOCKER:-prod}
+      UPLOAD_DIR: /app/uploads
+      # Avisos push (D-078): sin claves, desactivados
+      PUSH_CLAVE_PUBLICA: ${PUSH_CLAVE_PUBLICA:-}
+      PUSH_CLAVE_PRIVADA: ${PUSH_CLAVE_PRIVADA:-}
+      PUSH_CONTACTO: ${PUSH_CONTACTO:-mailto:no-reply@toca.local}
+      # Acceso con Google (D-085): sin credenciales, desactivado
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      # Este Compose sirve por HTTP en localhost. Detrás de un proxy con HTTPS, COOKIE_SEGURA=true en el .env
+      COOKIE_SEGURA: ${COOKIE_SEGURA:-false}
+      # Sin proxy delante, ninguno de confianza: nadie puede cambiar su IP con X-Forwarded-For (D-090)
+      PROXIES_DE_CONFIANZA: ${PROXIES_DE_CONFIANZA:-}
+    # Solo en este equipo (D-090), como MySQL y Mailpit: por HTTP, la cookie de la sesión viajaría en claro por la red.
+    # Para servirla a otros equipos, un proxy con HTTPS delante
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - uploads:/app/uploads
+    # Endurecimiento (D-089): solo se escribe en /tmp (Tomcat y las subidas a medio recibir) y en las fotos, sin
+    # capacidades de Linux y sin poder ganar privilegios
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  mysql-data:
+  uploads:

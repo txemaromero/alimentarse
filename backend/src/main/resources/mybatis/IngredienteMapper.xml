@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="es.alimentarse.ingrediente.IngredienteMapper">
+
+    <resultMap id="ingrediente" type="es.alimentarse.ingrediente.IngredienteDto">
+        <constructor>
+            <idArg column="ID" javaType="_int" name="id"/>
+            <arg column="NOMBRE" javaType="string" name="nombre"/>
+            <arg javaType="es.alimentarse.catalogo.GrupoDto" name="grupo"
+                 resultMap="es.alimentarse.catalogo.CatalogoMapper.grupo" columnPrefix="G_"/>
+            <arg column="ALIMENTO" javaType="string" name="alimento"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="columnas">
+        SELECT i.ID, i.NOMBRE, g.ID AS G_ID, g.NOMBRE AS G_NOMBRE, g.RACIONES_SEMANA AS G_RACIONES_SEMANA,
+               a.NOMBRE AS ALIMENTO
+        FROM ingredientes i
+        JOIN grupo_ingrediente g ON g.ID = i.GRUPO
+        LEFT JOIN ingrediente_alimento ia ON ia.INGREDIENTE = i.ID
+        LEFT JOIN alimento_bedca a ON a.ID = ia.ALIMENTO
+    </sql>
+
+    <!-- La colación utf8mb4_0900_ai_ci hace que LIKE ignore mayúsculas y acentos -->
+    <sql id="filtro">
+        <where>
+            <if test="nombre != null">i.NOMBRE LIKE #{nombre} ESCAPE '\\'</if>
+            <if test="grupo != null">AND i.GRUPO = #{grupo}</if>
+            <if test="sinAlimento">
+                AND NOT EXISTS (SELECT 1 FROM ingrediente_alimento s WHERE s.INGREDIENTE = i.ID)
+            </if>
+        </where>
+    </sql>
+
+    <select id="buscar" resultMap="ingrediente">
+        <include refid="columnas"/>
+        <include refid="filtro"/>
+        ORDER BY i.NOMBRE, i.ID
+        LIMIT #{limite} OFFSET #{desplazamiento}
+    </select>
+
+    <select id="contar" resultType="_long">
+        SELECT COUNT(*) FROM ingredientes i
+        <include refid="filtro"/>
+    </select>
+
+    <select id="sugerencias" resultMap="ingrediente">
+        <include refid="columnas"/>
+        WHERE i.NOMBRE LIKE #{contiene} ESCAPE '\\'
+        ORDER BY (i.NOMBRE LIKE #{prefijo} ESCAPE '\\') DESC, i.NOMBRE, i.ID
+        LIMIT #{limite}
+    </select>
+
+    <select id="buscarPorId" resultMap="ingrediente">
+        <include refid="columnas"/>
+        WHERE i.ID = #{id}
+    </select>
+
+    <select id="existeNombre" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1 FROM ingredientes WHERE NOMBRE = #{nombre}
+            <if test="exceptoId != null">AND ID &lt;&gt; #{exceptoId}</if>
+        )
+    </select>
+
+    <insert id="insertar">
+        INSERT INTO ingredientes (NOMBRE, GRUPO) VALUES (#{nombre}, #{grupo})
+    </insert>
+
+    <select id="ultimoIdInsertado" resultType="_int">
+        SELECT LAST_INSERT_ID()
+    </select>
+
+    <update id="actualizar">
+        UPDATE ingredientes SET NOMBRE = #{nombre}, GRUPO = #{grupo} WHERE ID = #{id}
+    </update>
+</mapper>

@@ -1,0 +1,19 @@
+:host {
+  display: block;
+}
+
+.tabla-nutricion {
+  th,
+  td {
+    padding-left: 0;
+    padding-right: 0.25rem;
+  }
+
+  td {
+    white-space: nowrap;
+  }
+}
+
+summary {
+  cursor: pointer;
+}

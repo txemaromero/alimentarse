@@ -1,0 +1,79 @@
+<section class="portada" aria-labelledby="portada-titulo">
+  <div class="container py-5">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-7">
+        <h1 id="portada-titulo" class="display-5 fw-bold mb-2">¿Qué toca hoy?</h1>
+        <p class="lead mb-4">
+          Hola, {{ sesion.usuario()?.nombre }}. Busca una receta o descubre lo que más gusta a la
+          comunidad.
+        </p>
+        <form class="buscador" role="search" [formGroup]="buscador" (ngSubmit)="buscar()">
+          <label for="portada-buscar" class="visually-hidden">Buscar recetas por título</label>
+          <div class="input-group input-group-lg">
+            <input
+              id="portada-buscar"
+              type="search"
+              class="form-control"
+              placeholder="Busca por título: tortilla, lentejas…"
+              autocomplete="off"
+              formControlName="texto"
+              maxlength="100"
+              [ngbTypeahead]="sugerir"
+              [inputFormatter]="tituloSugerencia"
+              [resultTemplate]="sugerencia"
+              (selectItem)="abrir($event)"
+            />
+            <button type="submit" class="btn btn-primary" aria-label="Buscar">
+              <fa-icon [icon]="iconoBuscar" />
+            </button>
+          </div>
+        </form>
+      </div>
+      <div class="col-lg-5 d-none d-lg-block text-center">
+        <img src="img/portada.svg" alt="" class="ilustracion" width="360" height="270" />
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container pb-5">
+  @for (
+    seccion of [
+      { titulo: 'Recetas mejor valoradas', id: 'mejor-valoradas', datos: mejorValoradas() },
+      { titulo: 'Últimas recetas añadidas', id: 'ultimas', datos: ultimas() },
+    ];
+    track seccion.id
+  ) {
+    <section [attr.aria-labelledby]="'titulo-' + seccion.id">
+      <h2 class="titulo-seccion" [id]="'titulo-' + seccion.id">{{ seccion.titulo }}</h2>
+      @if (seccion.datos.fallo) {
+        <div class="alert alert-warning" role="alert">No se han podido cargar estas recetas.</div>
+      } @else if (seccion.datos.recetas; as recetas) {
+        @if (recetas.length === 0) {
+          <p class="text-center text-body-secondary">Todavía no hay recetas publicadas.</p>
+        } @else {
+          <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4">
+            @for (receta of recetas; track receta.id) {
+              <div class="col animate__animated animate__fadeInUp">
+                <app-tarjeta-receta [receta]="receta" (cambio)="actualizar($event)" />
+              </div>
+            }
+          </div>
+        }
+      } @else {
+        <div class="text-center py-4 cargando-seccion">
+          <span class="spinner-border text-secondary" role="status">
+            <span class="visually-hidden">Cargando…</span>
+          </span>
+        </div>
+      }
+    </section>
+  }
+  <div class="text-center mt-4">
+    <a routerLink="/recetas" class="btn btn-outline-primary">Ver todas las recetas</a>
+  </div>
+</div>
+
+<ng-template #sugerencia let-receta="result" let-termino="term">
+  <ngb-highlight [result]="receta.titulo" [term]="termino" />
+</ng-template>

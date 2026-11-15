@@ -1,0 +1,9 @@
+node_modules
+dist
+coverage
+.angular
+package-lock.json
+
+# Informes de Playwright (generados)
+playwright-report
+test-results

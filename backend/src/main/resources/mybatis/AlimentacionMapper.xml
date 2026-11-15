@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="es.alimentarse.alimentacion.AlimentacionMapper">
+
+    <!--
+        Todos los resultMaps de este mapper son planos: un objeto anidado en un resultMap sin idArg propio hace que
+        MyBatis fusione las filas que coinciden en las columnas simples (p. ej. el mismo número de "veces").
+    -->
+
+    <resultMap id="consumoGrupo" type="es.alimentarse.alimentacion.ConsumoGrupo">
+        <constructor>
+            <arg column="CONSUMO" javaType="_long" name="consumo"/>
+            <arg column="FECHA" javaType="java.time.Instant" name="fecha"/>
+            <arg column="GRUPO" javaType="_int" name="grupo"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="grupoDeReceta" type="es.alimentarse.alimentacion.GrupoDeReceta">
+        <constructor>
+            <arg column="RECETA" javaType="_int" name="receta"/>
+            <arg column="GRUPO_ID" javaType="_int" name="grupoId"/>
+            <arg column="GRUPO_NOMBRE" javaType="string" name="grupoNombre"/>
+            <arg column="RACIONES_SEMANA" javaType="java.lang.Integer" name="racionesSemana"/>
+            <arg column="BASICO" javaType="_boolean" name="basico"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="recetaVeces" type="es.alimentarse.alimentacion.RecetaVeces">
+        <constructor>
+            <arg column="RECETA" javaType="_int" name="receta"/>
+            <arg column="VECES" javaType="_long" name="veces"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="ingredienteVeces" type="es.alimentarse.alimentacion.IngredienteVeces">
+        <constructor>
+            <arg column="ID" javaType="_int" name="id"/>
+            <arg column="NOMBRE" javaType="string" name="nombre"/>
+            <arg column="GRUPO_ID" javaType="_int" name="grupoId"/>
+            <arg column="GRUPO_NOMBRE" javaType="string" name="grupoNombre"/>
+            <arg column="RACIONES_SEMANA" javaType="java.lang.Integer" name="racionesSemana"/>
+            <arg column="ALIMENTO" javaType="string" name="alimento"/>
+            <arg column="VECES" javaType="_long" name="veces"/>
+        </constructor>
+    </resultMap>
+
+    <!-- DISTINCT: dos ingredientes del mismo grupo en una receta dan una sola fila (una ración, 6.2) -->
+    <select id="consumosConGrupos" resultMap="consumoGrupo">
+        SELECT DISTINCT c.ID AS CONSUMO, c.FECHA, i.GRUPO
+        FROM usuario_receta_consumida c
+        JOIN ingrediente_receta ir ON ir.RECETA = c.RECETA
+        JOIN ingredientes i ON i.ID = ir.INGREDIENTE
+        WHERE c.USUARIO = #{usuario}
+          AND c.FECHA BETWEEN #{desde} AND #{hasta}
+    </select>
+
+    <select id="gruposDeRecetas" resultMap="grupoDeReceta">
+        SELECT DISTINCT ir.RECETA, g.ID AS GRUPO_ID, g.NOMBRE AS GRUPO_NOMBRE, g.RACIONES_SEMANA, g.BASICO
+        FROM ingrediente_receta ir
+        JOIN ingredientes i ON i.ID = ir.INGREDIENTE
+        JOIN grupo_ingrediente g ON g.ID = i.GRUPO
+        WHERE ir.RECETA IN
+        <foreach item="receta" collection="recetas" open="(" separator="," close=")">#{receta}</foreach>
+    </select>
+
+    <select id="masConsumidas" resultMap="recetaVeces">
+        SELECT c.RECETA, COUNT(*) AS VECES
+        FROM usuario_receta_consumida c
+        WHERE c.USUARIO = #{usuario}
+        GROUP BY c.RECETA
+        ORDER BY VECES DESC, MAX(c.FECHA) DESC, c.RECETA DESC
+        LIMIT #{limite}
+    </select>
+
+    <!-- Sin los grupos básicos (sal, aceite, especias…), que están en casi todas las recetas (D-054) -->
+    <select id="ingredientesMasUsados" resultMap="ingredienteVeces">
+        SELECT i.ID, i.NOMBRE, g.ID AS GRUPO_ID, g.NOMBRE AS GRUPO_NOMBRE, g.RACIONES_SEMANA,
+               a.NOMBRE AS ALIMENTO, COUNT(DISTINCT c.ID) AS VECES
+        FROM usuario_receta_consumida c
+        JOIN ingrediente_receta ir ON ir.RECETA = c.RECETA
+        JOIN ingredientes i ON i.ID = ir.INGREDIENTE
+        JOIN grupo_ingrediente g ON g.ID = i.GRUPO
+        LEFT JOIN ingrediente_alimento ia ON ia.INGREDIENTE = i.ID
+        LEFT JOIN alimento_bedca a ON a.ID = ia.ALIMENTO
+        WHERE c.USUARIO = #{usuario}
+          AND g.BASICO = FALSE
+        GROUP BY i.ID, g.ID, a.ID
+        ORDER BY VECES DESC, i.NOMBRE, i.ID
+        LIMIT #{limite}
+    </select>
+</mapper>

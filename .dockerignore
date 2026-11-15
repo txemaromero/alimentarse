@@ -1,0 +1,16 @@
+# Lo que no debe entrar en el contexto de «docker build»: dependencias, salidas de build, secretos y datos locales
+.git
+.env
+**/.env
+**/.env.*
+.tools
+*.pdf
+**/node_modules
+**/target
+backend/uploads
+uploads
+**/uploads
+backend/src/main/resources/static
+frontend/.angular
+frontend/test-results
+frontend/playwright-report

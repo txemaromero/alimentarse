@@ -1,0 +1,15 @@
+:host {
+  display: block;
+}
+
+.miniatura {
+  flex: 0 0 4.5rem;
+  width: 4.5rem;
+  height: 4.5rem;
+  object-fit: cover;
+  background-color: var(--toca-beige-claro);
+}
+
+.min-w-0 {
+  min-width: 0;
+}

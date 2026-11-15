@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Te damos la bienvenida a Alimentarse</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f2f2f2; font-family:Arial, Helvetica, sans-serif; color:#333333;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f2f2f2; padding:24px 12px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px; background-color:#ffffff; border-radius:8px; overflow:hidden;">
+          <tr>
+            <td style="background-color:#bfa48a; padding:20px 28px; color:#ffffff; font-size:22px; font-weight:bold;">
+              Toca · ¿Qué toca hoy?
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:28px;">
+              <h1 style="margin:0 0 16px; font-size:20px; color:#333333;">¡Hola, <span th:text="${nombre}">Lucía</span>!</h1>
+              <p style="margin:0 0 12px; line-height:1.5;">Tu cuenta en <strong>Alimentarse</strong> ya está creada. Desde ahora puedes:</p>
+              <ul style="margin:0 0 20px; padding-left:20px; line-height:1.6;">
+                <li>publicar tus recetas y descubrir las de otras personas,</li>
+                <li>apuntar lo que comes cada día,</li>
+                <li>y consultar «¿Qué toca hoy?» para mantener una dieta equilibrada.</li>
+              </ul>
+              <th:block th:if="${urlConfirmar}">
+                <p style="margin:0 0 12px; line-height:1.5;">Antes, confirma que este email es tuyo: así podremos avisarte de los cambios en tu cuenta y ayudarte si olvidas la contraseña.</p>
+                <p style="margin:0 0 12px;">
+                  <a th:href="${urlConfirmar}" href="#" style="display:inline-block; background-color:#3a7d44; color:#ffffff; text-decoration:none; padding:12px 22px; border-radius:6px; font-weight:bold;">Confirmar mi email</a>
+                </p>
+                <p style="margin:0 0 24px; font-size:13px; color:#777777;">El enlace caduca en 24 horas. Si caduca, pide otro desde «Mi perfil».</p>
+              </th:block>
+              <p th:unless="${urlConfirmar}" style="margin:0 0 24px;">
+                <a th:href="${urlLogin}" href="#" style="display:inline-block; background-color:#3a7d44; color:#ffffff; text-decoration:none; padding:12px 22px; border-radius:6px; font-weight:bold;">Iniciar sesión</a>
+              </p>
+              <p style="margin:0; font-size:13px; color:#777777;">Si no has creado tú esta cuenta, puedes ignorar este correo.</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:16px 28px; background-color:#faf7f4; font-size:12px; color:#999999;">
+              Alimentarse · Este es un mensaje automático, no respondas a este correo.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

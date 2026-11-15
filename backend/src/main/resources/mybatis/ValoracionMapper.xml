@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="es.alimentarse.receta.ValoracionMapper">
+
+    <resultMap id="valoracion" type="es.alimentarse.receta.ValoracionDto">
+        <constructor>
+            <idArg column="ID" javaType="_long" name="id"/>
+            <arg column="USUARIO" javaType="string" name="usuario"/>
+            <arg column="NOTA" javaType="_int" name="nota"/>
+            <arg column="COMENTARIO" javaType="string" name="comentario"/>
+            <arg column="FECHA" javaType="java.time.Instant" name="fecha"/>
+            <arg column="OCULTA" javaType="_boolean" name="oculta"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="notaMedia" type="es.alimentarse.receta.NotaMedia">
+        <constructor>
+            <arg column="MEDIA" javaType="java.lang.Double" name="media"/>
+            <arg column="TOTAL" javaType="_long" name="total"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="columnas">ID, USUARIO, NOTA, COMENTARIO, FECHA, OCULTA</sql>
+
+    <!-- Las de una receta; las ocultas, solo con conOcultas (administradores) -->
+    <sql id="deLaReceta">
+        WHERE RECETA = #{receta}
+        <if test="!conOcultas">AND NOT OCULTA</if>
+    </sql>
+
+    <select id="deUsuario" resultMap="valoracion">
+        SELECT <include refid="columnas"/>
+        FROM valoracion_receta
+        WHERE RECETA = #{receta} AND USUARIO = #{usuario}
+    </select>
+
+    <select id="deReceta" resultMap="valoracion">
+        SELECT <include refid="columnas"/>
+        FROM valoracion_receta
+        <include refid="deLaReceta"/>
+        ORDER BY FECHA DESC, ID DESC
+        LIMIT #{limite} OFFSET #{desplazamiento}
+    </select>
+
+    <select id="contar" resultType="long">
+        SELECT COUNT(*) FROM valoracion_receta <include refid="deLaReceta"/>
+    </select>
+
+    <select id="notaMedia" resultMap="notaMedia">
+        SELECT ROUND(AVG(NOTA), 1) AS MEDIA, COUNT(*) AS TOTAL
+        FROM valoracion_receta
+        WHERE RECETA = #{receta} AND NOT OCULTA
+    </select>
+
+    <insert id="guardar">
+        INSERT INTO valoracion_receta (USUARIO, RECETA, NOTA, COMENTARIO, FECHA)
+        VALUES (#{usuario}, #{receta}, #{nota}, #{comentario}, #{fecha}) AS nueva
+        ON DUPLICATE KEY UPDATE NOTA = nueva.NOTA, COMENTARIO = nueva.COMENTARIO, FECHA = nueva.FECHA
+    </insert>
+
+    <delete id="borrar">
+        DELETE FROM valoracion_receta WHERE RECETA = #{receta} AND USUARIO = #{usuario}
+    </delete>
+
+    <select id="buscar" resultMap="valoracion">
+        SELECT <include refid="columnas"/> FROM valoracion_receta WHERE ID = #{id}
+    </select>
+
+    <update id="actualizarOculta">
+        UPDATE valoracion_receta SET OCULTA = #{oculta} WHERE ID = #{id}
+    </update>
+</mapper>

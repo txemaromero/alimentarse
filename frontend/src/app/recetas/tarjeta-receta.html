@@ -1,0 +1,143 @@
+@let r = receta();
+<article class="card h-100 tarjeta-receta" [class.eliminada]="r.eliminada">
+  @if (r.eliminada) {
+    <div class="marco-imagen" aria-hidden="true">
+      <span class="sin-imagen"><fa-icon [icon]="iconos.sinImagen" size="2x" /></span>
+    </div>
+  } @else {
+    <a [routerLink]="['/recetas', r.id]" class="marco-imagen" tabindex="-1" aria-hidden="true">
+      @if (r.imagen) {
+        <img
+          [src]="urlImagen(r.imagen, 800)"
+          [srcset]="srcsetImagen(r.imagen)"
+          sizes="(min-width: 992px) 33vw, (min-width: 576px) 50vw, 100vw"
+          alt=""
+          loading="lazy"
+        />
+      } @else {
+        <span class="sin-imagen"><fa-icon [icon]="iconos.sinImagen" size="2x" /></span>
+      }
+    </a>
+  }
+
+  <div class="card-body d-flex flex-column">
+    <div class="d-flex flex-wrap gap-1 mb-2">
+      <span class="badge rounded-pill text-bg-secondary">{{ r.tipo.nombre }}</span>
+      @if (r.eliminada) {
+        <span class="badge rounded-pill text-bg-dark">Eliminada</span>
+      } @else if (r.oculta) {
+        <span class="badge rounded-pill text-bg-danger">Oculta</span>
+      } @else if (!r.publicada) {
+        <span class="badge rounded-pill text-bg-warning">No publicada</span>
+      } @else if (modoAutor()) {
+        <span class="badge rounded-pill text-bg-success">Publicada</span>
+      }
+    </div>
+
+    <h3 class="h6 card-title mb-1">
+      @if (r.eliminada) {
+        <span class="titulo">{{ r.titulo }}</span>
+      } @else {
+        <a [routerLink]="['/recetas', r.id]" class="titulo">{{ r.titulo }}</a>
+      }
+    </h3>
+    @if (r.autor) {
+      <p class="small text-body-secondary mb-2">por {{ r.autor }}</p>
+    }
+    @if (r.valoraciones > 0 && r.nota !== null) {
+      <p class="small mb-2 valoracion">
+        <app-estrellas
+          [nota]="r.nota"
+          prefijo="Nota media: "
+          [sufijo]="
+            ', ' + r.valoraciones + (r.valoraciones === 1 ? ' valoración' : ' valoraciones')
+          "
+        />
+        <span aria-hidden="true"> {{ r.nota | number: '1.1-1' }} ({{ r.valoraciones }})</span>
+      </p>
+    }
+
+    <ul class="list-unstyled d-flex flex-wrap gap-3 small mb-3 datos">
+      <li title="Tiempo de preparación">
+        <fa-icon [icon]="iconos.reloj" class="me-1" /><span aria-hidden="true"
+          >{{ r.tiempo }} min</span
+        ><span class="visually-hidden">{{ r.tiempo }} minutos de preparación</span>
+      </li>
+      <li title="Comensales">
+        <fa-icon [icon]="iconos.comensales" class="me-1" /><span aria-hidden="true">{{
+          r.comensales
+        }}</span
+        ><span class="visually-hidden"
+          >{{ r.comensales }} {{ r.comensales === 1 ? 'comensal' : 'comensales' }}</span
+        >
+      </li>
+      <li><app-icono-dificultad [dificultad]="r.dificultad" /></li>
+    </ul>
+
+    <!-- Contenido extra de quien usa la tarjeta (fecha de consumo, veces…) -->
+    <ng-content />
+
+    @if (r.eliminada) {
+      <p class="mt-auto mb-0 small text-body-secondary">
+        Su autor la ha eliminado: ya no se puede abrir.
+      </p>
+    } @else {
+      <div class="mt-auto d-flex align-items-center gap-1">
+        <button
+          type="button"
+          class="btn btn-sm btn-link boton-me-gusta"
+          [class.activo]="r.meGusta"
+          [attr.aria-pressed]="r.meGusta"
+          [appRequiereConexion]="ocupado() || !r.publicada || r.oculta"
+          [title]="
+            r.oculta
+              ? 'Una receta oculta no recibe «me gusta»'
+              : r.publicada
+                ? r.meGusta
+                  ? 'Quitar «me gusta»'
+                  : 'Me gusta'
+                : 'Publícala para recibir «me gusta»'
+          "
+          (click)="alternarMeGusta()"
+        >
+          <fa-icon [icon]="r.meGusta ? iconos.meGusta : iconos.noMeGusta" class="me-1" /><span
+            aria-hidden="true"
+            >{{ r.likes }}</span
+          ><span class="visually-hidden">{{ r.likes }} me gusta</span>
+        </button>
+
+        @if (modoAutor()) {
+          <span class="ms-auto"></span>
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-secondary"
+            [appRequiereConexion]="ocupado()"
+            [title]="r.publicada ? 'Dejar de publicar' : 'Publicar'"
+            [attr.aria-label]="(r.publicada ? 'Dejar de publicar ' : 'Publicar ') + r.titulo"
+            (click)="alternarPublicada()"
+          >
+            <fa-icon [icon]="r.publicada ? iconos.noPublicada : iconos.publicada" />
+          </button>
+          <a
+            class="btn btn-sm btn-outline-secondary"
+            [routerLink]="['/recetas', r.id, 'editar']"
+            title="Editar"
+            [attr.aria-label]="'Editar ' + r.titulo"
+          >
+            <fa-icon [icon]="iconos.editar" />
+          </a>
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-danger"
+            [appRequiereConexion]="ocupado()"
+            title="Eliminar"
+            [attr.aria-label]="'Eliminar ' + r.titulo"
+            (click)="eliminar()"
+          >
+            <fa-icon [icon]="iconos.eliminar" />
+          </button>
+        }
+      </div>
+    }
+  </div>
+</article>

@@ -1,0 +1,226 @@
+# Integración continua: en cada push a main, en cada pull request y a mano (pestaña Actions).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Un push nuevo cancela la ejecución anterior de la misma rama
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend (tests, formato y cobertura)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      # Los tests usan un MySQL de Testcontainers (D-016); estas solo evitan variables sin valor
+      DB_URL: jdbc:mysql://localhost:3306/no-se-usa
+      DB_USER: no-se-usa
+      DB_PASSWORD: no-se-usa
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Ningún paso usa git con credenciales: el token no se queda en .git (D-089)
+          persist-credentials: false
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+      - name: mvnw verify
+        working-directory: backend
+        run: ./mvnw -B verify
+      - name: Informe de cobertura
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: cobertura-backend
+          path: backend/target/site/jacoco
+          if-no-files-found: ignore
+          retention-days: 7
+
+  frontend:
+    name: Frontend (lint, formato, tests y build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      # docs/openapi.json lo comprueba OpenApiTest en el backend; aquí, que los tipos se han regenerado (D-073)
+      - name: Tipos de la API al día con docs/openapi.json
+        run: |
+          npm run api
+          git diff --exit-code -- src/app/core/api.generado.ts || {
+            echo "::error::src/app/core/api.generado.ts no está al día: ejecuta «npm run api» en frontend/ y súbelo"
+            exit 1
+          }
+      - run: npm run lint
+      - run: npm run format:check
+      # Con los umbrales mínimos de cobertura de angular.json (D-074)
+      - run: npm run test:cobertura
+      - name: Informe de cobertura
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: cobertura-frontend
+          path: frontend/coverage
+          if-no-files-found: ignore
+          retention-days: 7
+      - run: npm run build
+
+  e2e:
+    name: Pruebas e2e (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: toca_e2e
+          MYSQL_USER: toca
+          MYSQL_PASSWORD: e2e-ci
+          MYSQL_ROOT_PASSWORD: root-ci
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -uroot -proot-ci --silent"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+    env:
+      # El perfil e2e vacía esta base de datos al arrancar (playwright.config.ts)
+      E2E_DB_URL: jdbc:mysql://127.0.0.1:3306/toca_e2e
+      DB_USER: toca
+      DB_PASSWORD: e2e-ci
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Secreto JWT de usar y tirar
+        run: |
+          secreto=$(openssl rand -base64 48)
+          echo "::add-mask::$secreto"
+          echo "JWT_SECRET=$secreto" >> "$GITHUB_ENV"
+      - name: Build de Angular
+        working-directory: frontend
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+      - name: JAR con el frontend
+        working-directory: backend
+        run: ./mvnw -B -q -DskipTests package
+      - name: Chromium para Playwright
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+      - name: Pruebas e2e
+        working-directory: frontend
+        run: npm run e2e
+      - name: Informe de Playwright
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: informe-playwright
+          path: frontend/playwright-report
+          if-no-files-found: ignore
+          # Las trazas de Playwright llevan cookies de sesión de prueba (D-089)
+          retention-days: 7
+
+  docker:
+    name: Docker (imagen y docker compose --profile full)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Construir la imagen
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          push: false
+          load: true
+          tags: alimentarse:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: .env de usar y tirar
+        run: |
+          # Como en el job e2e: que el secreto no salga en el log si algo vuelca la configuración (D-089)
+          secreto=$(openssl rand -base64 48)
+          echo "::add-mask::$secreto"
+          {
+            echo "DB_USER=toca"
+            echo "DB_PASSWORD=compose-ci"
+            echo "MYSQL_ROOT_PASSWORD=root-ci"
+            echo "JWT_SECRET=$secreto"
+            echo "ADMIN_INITIAL_PASSWORD=admin-ci-1234"
+          } > .env
+      - name: Levantar aplicación, MySQL y Mailpit (espera a que estén sanos)
+        run: docker compose --profile full up -d --no-build --wait --wait-timeout 300
+      - name: Comprobar que es usable
+        run: |
+          set -e
+          curl -fsS http://localhost:8080/ | grep -q '<app-root'
+          curl -fsS http://localhost:8080/recetas/1 | grep -q '<app-root'
+          curl -fsS -o /dev/null -w '%{content_type}\n' http://localhost:8080/manifest.webmanifest | grep -q 'application/manifest+json'
+          codigo=$(curl -s -D /tmp/login.cabeceras -o /tmp/login.json -w '%{http_code}' -H 'Content-Type: application/json' \
+            -d '{"usuario":"admin","password":"admin-ci-1234"}' http://localhost:8080/api/auth/login)
+          test "$codigo" = "200"
+          grep -q '"caduca"' /tmp/login.json
+          grep -iq '^set-cookie: toca_sesion=.*HttpOnly' /tmp/login.cabeceras
+          # gzip (index.html no llega a los 2 KB a partir de los que se comprime: se mira el bundle principal)
+          principal=$(curl -fsS http://localhost:8080/ | grep -o 'main-[A-Za-z0-9]*\.js' | head -1)
+          # Las cabeceras van a un fichero: con «-D - | grep -q», grep corta la tubería y curl avisa sin motivo
+          curl -fsS -H 'Accept-Encoding: gzip' -D /tmp/gzip.cabeceras -o /dev/null "http://localhost:8080/$principal"
+          grep -iq '^content-encoding: gzip' /tmp/gzip.cabeceras
+          curl -fsS -D /tmp/portada.cabeceras -o /dev/null http://localhost:8080/
+          grep -iq "^content-security-policy: default-src 'self'" /tmp/portada.cabeceras
+          curl -fsS http://localhost:8080/api/health | grep -q '"UP"'
+          # Una foto subida se recodifica: comprueba que el JRE de la imagen Docker puede hacerlo (galería, D-083)
+          token=$(grep -i '^set-cookie: toca_sesion=' /tmp/login.cabeceras | sed -E 's/.*toca_sesion=([^;]+).*/\1/')
+          sesion="Authorization: Bearer $token"
+          huevos=$(curl -fsS -H "$sesion" 'http://localhost:8080/api/ingredientes/sugerencias?q=Huevos' | grep -oE '"id":[0-9]+' | head -1 | cut -d: -f2)
+          echo 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==' | base64 -d > /tmp/foto.png
+          echo "{\"titulo\":\"Receta de la CI\",\"instrucciones\":\"<p>Mezclar.</p>\",\"tipo\":1,\"tiempo\":10,\"comensales\":2,\"dificultad\":\"Fácil\",\"ingredientes\":[{\"ingrediente\":$huevos,\"cantidad\":\"2\"}],\"fotos\":[{\"existente\":null,\"nueva\":0,\"descripcion\":null}]}" > /tmp/receta.json
+          curl -fsS -H "$sesion" -F 'receta=@/tmp/receta.json;type=application/json' -F 'fotos=@/tmp/foto.png;type=image/png' http://localhost:8080/api/recetas > /tmp/receta-creada.json
+          # La URL sale dos veces (imagen y fotos[0].url): con la primera basta
+          imagen=$(grep -oE '/api/imagenes/[0-9a-f-]+\.jpg' /tmp/receta-creada.json | head -1)
+          curl -fsS -o /dev/null -w '%{content_type}\n' "http://localhost:8080$imagen?ancho=400" | grep -q 'image/jpeg'
+          echo "Aplicación usable en http://localhost:8080: portada, rutas de Angular, manifest, login, gzip, CSP, salud e imágenes"
+      # Sin .env no se llegó a levantar nada (falló el build de la imagen): Compose no arrancaría sin DB_PASSWORD, y
+      # estos dos pasos solo añadirían errores que tapan el de verdad
+      - name: Registro de los contenedores
+        if: failure() && hashFiles('.env') != ''
+        run: |
+          docker compose --profile full ps -a
+          docker inspect --format '{{json .State.Health}}' alimentarse-app-1 || true
+          docker compose --profile full logs --no-color
+      - name: Parar
+        if: always() && hashFiles('.env') != ''
+        run: docker compose --profile full down -v

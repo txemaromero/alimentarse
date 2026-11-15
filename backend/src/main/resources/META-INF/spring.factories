@@ -1,0 +1,2 @@
+# Sin SPRING_PROFILES_ACTIVE, la aplicación no arranca (D-089)
+org.springframework.context.ApplicationListener=es.alimentarse.config.PerfilObligatorio

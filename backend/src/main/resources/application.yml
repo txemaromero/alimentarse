@@ -1,0 +1,142 @@
+# Configuración común a todos los perfiles.
+# Los valores salen de variables de entorno; en desarrollo también se leen del fichero .env
+# (en backend/ o en la raíz del repo). Una variable de entorno real tiene prioridad sobre el .env.
+spring:
+  application:
+    name: alimentarse
+  config:
+    import:
+      - optional:file:.env[.properties]
+      - optional:file:../.env[.properties]
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    hikari:
+      # Las fechas viajan como Instant y la sesión trabaja en UTC (D-013)
+      data-source-properties:
+        connectionTimeZone: UTC
+        forceConnectionTimeZoneToSession: true
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    default-encoding: UTF-8
+    properties:
+      # Remitente de sobre; además evita que JavaMail resuelva el nombre del equipo para el Message-ID
+      mail.from: ${MAIL_FROM:no-reply@toca.local}
+      # Milisegundos: un servidor de correo que no responde no deja hilos bloqueados
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
+      mail.smtp.writetimeout: 5000
+  web:
+    resources:
+      # El build de Angular lo sirve FrontendConfig (rutas de Angular y caché por tipo de fichero)
+      add-mappings: false
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      # Hasta 6 fotos de 5 MB en una receta (D-083)
+      max-request-size: 32MB
+
+server:
+  port: 8080
+  # Respuestas comprimidas (gzip) a partir de 2 KB: el JSON de la API y el frontend
+  compression:
+    enabled: true
+    additional-mime-types: application/manifest+json,image/svg+xml
+  tomcat:
+    # Tomcat lee (y descarta) peticiones de hasta 10 MB aunque superen el límite de subida: así el cliente
+    # recibe el 413 con su mensaje en lugar de un corte de conexión
+    max-swallow-size: 10MB
+  # La sesión HTTP solo existe durante el intercambio con Google (D-085): corta, y con SameSite=Lax para que llegue
+  # a la vuelta de Google, que es una navegación desde otro sitio (D-086)
+  servlet:
+    session:
+      timeout: 10m
+      cookie:
+        http-only: true
+        same-site: lax
+
+management:
+  endpoints:
+    web:
+      # Bajo /api, como el resto: /api/health, /api/health/liveness y /api/health/readiness (públicos, sin detalles)
+      base-path: /api
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+  health:
+    # Un SMTP caído no debe marcar la aplicación como no disponible
+    mail:
+      enabled: false
+
+mybatis:
+  mapper-locations: classpath:mybatis/**/*.xml
+  configuration:
+    # Columnas en MAYÚSCULAS con guiones bajos (FECHA_CREACION) → propiedades camelCase (fechaCreacion)
+    map-underscore-to-camel-case: true
+
+springdoc:
+  # Swagger UI solo en el perfil dev (application-dev.yml)
+  api-docs:
+    enabled: false
+    path: /api/docs/openapi
+  # Salida estable y legible: docs/openapi.json se versiona y se compara en los tests (D-073)
+  writer-with-order-by-keys: true
+  writer-with-default-pretty-printer: true
+  swagger-ui:
+    enabled: false
+    path: /api/docs
+
+app:
+  base-url: ${APP_BASE_URL:http://localhost:4200}
+  # Acceso con Google (D-085): sin las dos, desactivado
+  google:
+    client-id: ${GOOGLE_CLIENT_ID:}
+    client-secret: ${GOOGLE_CLIENT_SECRET:}
+  upload-dir: ${UPLOAD_DIR:./uploads}
+  mail-from: ${MAIL_FROM:no-reply@toca.local}
+  jwt:
+    secreto: ${JWT_SECRET:}
+    expiracion-horas: ${JWT_EXPIRATION_HOURS:8}
+    cookie-segura: ${COOKIE_SEGURA:true}
+  # Coste de bcrypt (D-090). Solo el perfil test lo baja: fuera de él, con menos de 12 la aplicación no arranca
+  contrasenas:
+    coste-bcrypt: 12
+  admin-inicial:
+    password: ${ADMIN_INITIAL_PASSWORD:}
+    email: ${ADMIN_INITIAL_EMAIL:admin@toca.local}
+  limite-intentos:
+    login:
+      maximo: 10
+      ventana: 1m
+    olvido-password:
+      maximo: 5
+      ventana: 15m
+    # Cuentas nuevas (con o sin Google) e inicios del acceso con Google, por IP (D-086)
+    registro:
+      maximo: 10
+      ventana: 1h
+    acceso-google:
+      maximo: 20
+      ventana: 1m
+    # Contraseñas fallidas de cada cuenta en el login, desde cualquier IP (D-090). Cualquiera puede agotarlo, porque los
+    # nombres de usuario son públicos: solo cuentan los fallos, y el enlace de «He olvidado la contraseña» lo pone a cero
+    login-cuenta:
+      maximo: 20
+      ventana: 15m
+  # Avisos push del recordatorio de las comidas planificadas (D-078). Sin las claves VAPID, desactivados.
+  # Para generarlas: scripts/generar-claves-push.ps1
+  push:
+    clave-publica: ${PUSH_CLAVE_PUBLICA:}
+    clave-privada: ${PUSH_CLAVE_PRIVADA:}
+    contacto: ${PUSH_CONTACTO:mailto:no-reply@toca.local}
+    antelacion: 60m
+    # Cada cuánto se buscan comidas por avisar
+    intervalo: PT5M

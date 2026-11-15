@@ -1,0 +1,91 @@
+<section class="panel-formulario animate__animated animate__fadeIn">
+  <div class="card">
+    <div class="card-body">
+      <h1 class="titulo-seccion mt-0">Iniciar sesión</h1>
+
+      @if (error(); as mensaje) {
+        <div class="alert alert-danger" role="alert">{{ mensaje }}</div>
+      } @else if (mensajeGoogle(); as mensaje) {
+        <div class="alert alert-warning" role="alert">{{ mensaje }}</div>
+      }
+
+      <form [formGroup]="formulario" (ngSubmit)="entrar()" novalidate>
+        <div class="mb-3">
+          <label for="login-usuario" class="form-label">Usuario o email</label>
+          <input
+            id="login-usuario"
+            type="text"
+            class="form-control"
+            formControlName="usuario"
+            autocomplete="username"
+            autocapitalize="none"
+            spellcheck="false"
+            [class.is-invalid]="esInvalido(formulario.controls.usuario)"
+            [attr.aria-invalid]="esInvalido(formulario.controls.usuario)"
+            aria-describedby="login-usuario-error"
+          />
+          <app-error-campo
+            [control]="formulario.controls.usuario"
+            idMensaje="login-usuario-error"
+          />
+        </div>
+
+        <div class="mb-4">
+          <label for="login-password" class="form-label">Contraseña</label>
+          <div class="input-group has-validation">
+            <input
+              id="login-password"
+              class="form-control"
+              formControlName="password"
+              autocomplete="current-password"
+              [type]="verPassword() ? 'text' : 'password'"
+              [class.is-invalid]="esInvalido(formulario.controls.password)"
+              [attr.aria-invalid]="esInvalido(formulario.controls.password)"
+              aria-describedby="login-password-error"
+            />
+            <button
+              type="button"
+              class="btn btn-outline-secondary"
+              [attr.aria-pressed]="verPassword()"
+              aria-label="Mostrar la contraseña"
+              (click)="verPassword.set(!verPassword())"
+            >
+              <fa-icon [icon]="verPassword() ? iconos.ocultar : iconos.ver" />
+            </button>
+          </div>
+          <app-error-campo
+            [control]="formulario.controls.password"
+            idMensaje="login-password-error"
+          />
+        </div>
+
+        <div class="d-grid gap-2">
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [appRequiereConexion]="formulario.invalid || enviando()"
+          >
+            @if (enviando()) {
+              <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+            }
+            Iniciar sesión
+          </button>
+          @if (conGoogle()) {
+            <button
+              type="button"
+              class="btn btn-outline-primary"
+              appRequiereConexion
+              (click)="entrarConGoogle()"
+            >
+              <fa-icon [icon]="iconos.google" class="me-2" />Entrar con Google
+            </button>
+          }
+          <a routerLink="/olvido-password" class="btn btn-link">He olvidado la contraseña</a>
+          <hr class="my-2" />
+          <p class="text-center m-0">¿Aún no tienes cuenta?</p>
+          <a routerLink="/registro" class="btn btn-outline-secondary">Registrarse</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,132 @@
+<section class="container pb-5">
+  <h1 class="titulo-seccion">Lista de la compra</h1>
+  <p class="text-center mb-1">
+    Del {{ dias()[0] | date: 'd MMM' }} al {{ dias()[6] | date: 'd MMM' }}
+  </p>
+  <p class="text-center text-body-secondary small mb-4">
+    Los ingredientes de las comidas planificadas que aún no han pasado.
+  </p>
+
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4 d-print-none">
+    <a
+      routerLink="/planificador"
+      [queryParams]="parametrosSemana()"
+      class="btn btn-outline-secondary"
+    >
+      <fa-icon [icon]="iconos.volver" class="me-1" />Volver al planificador
+    </a>
+    @if (articulos().length > 0) {
+      <div class="d-flex flex-wrap gap-2">
+        <button type="button" class="btn btn-outline-secondary" (click)="desmarcarTodo()">
+          Desmarcar todo
+        </button>
+        <button type="button" class="btn btn-primary" (click)="imprimir()">
+          <fa-icon [icon]="iconos.imprimir" class="me-1" />Imprimir o guardar en PDF
+        </button>
+      </div>
+    }
+  </div>
+
+  @if (fallo()) {
+    <div class="alert alert-danger d-flex align-items-center gap-3" role="alert">
+      <span class="flex-grow-1">No se ha podido cargar la lista de la compra.</span>
+      <button type="button" class="btn btn-sm btn-outline-danger" (click)="cargar()">
+        Reintentar
+      </button>
+    </div>
+  } @else if (lista(); as l) {
+    @if (l.noDisponibles > 0) {
+      <div class="alert alert-warning" role="status">
+        @if (l.noDisponibles === 1) {
+          Una comida planificada no entra en la lista: su receta ya no está disponible.
+        } @else {
+          {{ l.noDisponibles }} comidas planificadas no entran en la lista: sus recetas ya no están
+          disponibles.
+        }
+      </div>
+    }
+    @if (l.secciones.length === 0) {
+      <div class="text-center py-5">
+        <p class="lead">No hay comidas planificadas para estos días.</p>
+        <a routerLink="/planificador" [queryParams]="parametrosSemana()" class="btn btn-primary">
+          Planificar comidas
+        </a>
+      </div>
+    } @else {
+      <p class="small text-body-secondary d-print-none">
+        {{ marcadosEnLista() }} de {{ articulos().length }} ingredientes marcados
+      </p>
+      <div class="row row-cols-1 row-cols-md-2 g-4 secciones">
+        @for (seccion of l.secciones; track seccion.grupo.id) {
+          <div class="col">
+            <section class="seccion" [attr.aria-labelledby]="'seccion-' + seccion.grupo.id">
+              <h2 class="h6 text-uppercase mb-2" [id]="'seccion-' + seccion.grupo.id">
+                {{ seccion.grupo.nombre }}
+                @if (seccion.basico) {
+                  <span class="small fw-normal text-lowercase text-body-secondary"
+                    >· suele haber en casa</span
+                  >
+                }
+              </h2>
+              <ul class="list-unstyled mb-0">
+                @for (articulo of seccion.articulos; track articulo.ingrediente) {
+                  <li class="form-check articulo" [class.marcado]="marcado(articulo)">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      [id]="'articulo-' + articulo.ingrediente"
+                      [checked]="marcado(articulo)"
+                      [attr.aria-describedby]="
+                        desglose(articulo) ? 'desglose-' + articulo.ingrediente : null
+                      "
+                      (change)="cambiar(articulo, $event)"
+                    />
+                    <label class="form-check-label" [for]="'articulo-' + articulo.ingrediente">
+                      <strong>{{ articulo.nombre }}</strong>
+                      @if (articulo.total) {
+                        – {{ articulo.total }}
+                      }
+                    </label>
+                    @if (desglose(articulo)) {
+                      <ul
+                        class="list-unstyled small text-body-secondary mb-0"
+                        [id]="'desglose-' + articulo.ingrediente"
+                      >
+                        @for (cantidad of articulo.cantidades; track cantidad.receta) {
+                          <li>
+                            {{ cantidad.titulo }}: {{ cantidad.cantidad }}
+                            @if (cantidad.veces > 1) {
+                              ({{ cantidad.veces }} veces)
+                            }
+                          </li>
+                        }
+                      </ul>
+                    }
+                  </li>
+                }
+              </ul>
+            </section>
+          </div>
+        }
+      </div>
+
+      <section class="mt-5" aria-labelledby="titulo-comidas">
+        <h2 class="h6 text-uppercase" id="titulo-comidas">Para estas comidas</h2>
+        <ul class="list-unstyled small mb-0">
+          @for (comida of l.comidas; track comida.id) {
+            <li>
+              {{ comida.fecha | date: 'EEEE d MMM' }}, {{ momento(comida) }}:
+              <a [routerLink]="['/recetas', comida.receta]">{{ comida.titulo }}</a>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  } @else {
+    <div class="text-center py-5">
+      <span class="spinner-border text-secondary" role="status">
+        <span class="visually-hidden">Cargando la lista de la compra…</span>
+      </span>
+    </div>
+  }
+</section>

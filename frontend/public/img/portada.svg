@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 270" role="img">
+  <!-- Ilustración original de Toca: plato con ensalada, cubiertos y hojas -->
+  <defs>
+    <radialGradient id="plato" cx="50%" cy="45%" r="55%">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#ece4db"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="180" cy="242" rx="130" ry="14" fill="#3b2c20" opacity=".12"/>
+  <circle cx="180" cy="135" r="105" fill="url(#plato)" stroke="#d9cbbd" stroke-width="3"/>
+  <circle cx="180" cy="135" r="78" fill="#fffdfb" stroke="#e6dacd" stroke-width="2"/>
+  <!-- hojas -->
+  <path d="M130 120c18-34 58-40 70-28-14 6-30 22-38 44-12 2-26-4-32-16z" fill="#6aa84f"/>
+  <path d="M168 104c30-18 66-6 70 14-16-4-38 0-56 14-10-6-14-18-14-28z" fill="#8bc34a"/>
+  <path d="M150 160c6-30 40-46 58-36-12 8-22 24-24 44-14 4-28 0-34-8z" fill="#558b2f"/>
+  <!-- tomates -->
+  <circle cx="205" cy="150" r="16" fill="#e53935"/>
+  <circle cx="200" cy="145" r="4" fill="#ffffff" opacity=".5"/>
+  <circle cx="160" cy="138" r="13" fill="#ef5350"/>
+  <circle cx="156" cy="134" r="3" fill="#ffffff" opacity=".5"/>
+  <!-- maíz y zanahoria -->
+  <circle cx="222" cy="118" r="5" fill="#fbc02d"/>
+  <circle cx="232" cy="126" r="5" fill="#fdd835"/>
+  <circle cx="226" cy="134" r="5" fill="#fbc02d"/>
+  <rect x="176" y="168" width="34" height="9" rx="4.5" fill="#fb8c00" transform="rotate(-20 193 172)"/>
+  <rect x="140" y="102" width="28" height="8" rx="4" fill="#ffa726" transform="rotate(25 154 106)"/>
+  <!-- tenedor -->
+  <g fill="#8d7a68">
+    <rect x="38" y="95" width="9" height="140" rx="4.5"/>
+    <rect x="30" y="40" width="5" height="50" rx="2.5"/>
+    <rect x="40" y="40" width="5" height="50" rx="2.5"/>
+    <rect x="50" y="40" width="5" height="50" rx="2.5"/>
+    <path d="M30 85h25v10a12 12 0 0 1-25 0z"/>
+  </g>
+  <!-- cuchillo -->
+  <g fill="#8d7a68">
+    <rect x="313" y="120" width="10" height="115" rx="5"/>
+    <path d="M313 125V55c0-14 18-18 20 0l-4 70z"/>
+  </g>
+  <!-- hojitas decorativas -->
+  <path d="M300 40c10-14 30-14 34-4-10 0-22 6-28 16-4-2-6-8-6-12z" fill="#a5d6a7"/>
+  <path d="M64 236c-6-12 2-26 14-26-2 8-2 18 4 26-6 4-14 4-18 0z" fill="#a5d6a7"/>
+</svg>

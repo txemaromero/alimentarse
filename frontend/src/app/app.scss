@@ -1,0 +1,19 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.contenido {
+  flex: 1 0 auto;
+  // El pie empieza fuera de la pantalla: si no, los datos al llegar lo empujan y la página da un salto (CLS)
+  min-height: calc(100vh - 3.875rem);
+  outline: none;
+}
+
+.saltar {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 1100;
+}

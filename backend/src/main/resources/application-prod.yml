@@ -1,0 +1,18 @@
+# Perfil de producción. Se activa con la variable de entorno SPRING_PROFILES_ACTIVE=prod.
+server:
+  # Detrás de un proxy o PaaS que termina HTTPS: respetar X-Forwarded-Proto/Host/For (D-086). Con «native», Tomcat solo
+  # cree esas cabeceras si llegan de un proxy de confianza y toma la IP del cliente de la derecha a la izquierda.
+  forward-headers-strategy: native
+  tomcat:
+    remoteip:
+      # Proxies de confianza (D-090): por defecto, solo esta máquina. Antes eran todas las redes privadas, y un cliente
+      # que llegara desde una (la LAN, la pasarela de Docker) se inventaba su IP en X-Forwarded-For y se saltaba los
+      # límites de intentos. Con el proxy en otra máquina, PROXIES_DE_CONFIANZA con sus rangos CIDR separados por
+      # comas; si no, la aplicación ve la IP del proxy: los límites se comparten entre todos y no llegan
+      # X-Forwarded-Proto ni X-Forwarded-Host. Vacía, no se confía en ninguno.
+      internal-proxies: ${PROXIES_DE_CONFIANZA:127.0.0.0/8, ::1/128}
+
+logging:
+  level:
+    root: INFO
+    es.alimentarse: INFO

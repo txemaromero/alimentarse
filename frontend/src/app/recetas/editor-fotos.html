@@ -1,0 +1,103 @@
+<fieldset>
+  <legend class="form-label fs-6 mb-1">
+    Fotos <span class="text-body-secondary">(opcional, hasta {{ maximo }})</span>
+  </legend>
+  <p id="receta-fotos-ayuda" class="form-text mt-0">
+    La primera es la principal: es la que sale en las tarjetas. JPEG, PNG o WebP de 5 MB como
+    máximo. La descripción la leen quienes no ven la foto.
+  </p>
+
+  @if (fotos().length > 0) {
+    <ol class="list-unstyled mb-3 lista-fotos">
+      @for (foto of fotos(); track foto.clave; let i = $index, primera = $first, ultima = $last) {
+        <li class="foto d-flex gap-2 mb-3" [attr.data-clave]="foto.clave">
+          <img class="miniatura rounded" [src]="foto.url" [alt]="altMiniatura(i)" />
+          <div class="flex-grow-1 min-w-0">
+            <div class="d-flex flex-wrap align-items-center gap-1 mb-1">
+              <span class="small fw-semibold">Foto {{ i + 1 }}</span>
+              @if (primera) {
+                <span class="badge rounded-pill text-bg-secondary">Principal</span>
+              }
+              @if (!foto.existente) {
+                <span class="badge rounded-pill text-bg-light border">Nueva</span>
+              }
+            </div>
+            <label class="visually-hidden" [for]="'foto-descripcion-' + foto.clave"
+              >Descripción de la foto {{ i + 1 }}</label
+            >
+            <input
+              [id]="'foto-descripcion-' + foto.clave"
+              type="text"
+              class="form-control form-control-sm"
+              maxlength="150"
+              placeholder="Descripción (opcional)"
+              [value]="foto.descripcion"
+              [class.is-invalid]="foto.error"
+              [attr.aria-describedby]="foto.error ? 'foto-error-' + foto.clave : null"
+              (input)="describir(foto.clave, $event)"
+            />
+            @if (foto.error) {
+              <div class="invalid-feedback d-block" [id]="'foto-error-' + foto.clave">
+                {{ foto.error }}
+              </div>
+            }
+            <div
+              class="btn-group btn-group-sm mt-1"
+              role="group"
+              [attr.aria-label]="'Foto ' + (i + 1)"
+            >
+              <button
+                type="button"
+                class="btn btn-outline-secondary"
+                data-accion="subir"
+                title="Subir"
+                [attr.aria-label]="'Subir la foto ' + (i + 1)"
+                [disabled]="primera"
+                (click)="mover(i, -1)"
+              >
+                <fa-icon [icon]="iconos.subir" />
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-secondary"
+                data-accion="bajar"
+                title="Bajar"
+                [attr.aria-label]="'Bajar la foto ' + (i + 1)"
+                [disabled]="ultima"
+                (click)="mover(i, 1)"
+              >
+                <fa-icon [icon]="iconos.bajar" />
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-danger"
+                data-accion="quitar"
+                title="Quitar"
+                [attr.aria-label]="'Quitar la foto ' + (i + 1)"
+                (click)="quitar(i)"
+              >
+                <fa-icon [icon]="iconos.quitar" />
+              </button>
+            </div>
+          </div>
+        </li>
+      }
+    </ol>
+  }
+
+  <label for="receta-fotos" class="form-label small mb-1">Añadir fotos</label>
+  <input
+    id="receta-fotos"
+    type="file"
+    class="form-control"
+    accept="image/jpeg,image/png,image/webp"
+    multiple
+    [disabled]="fotos().length >= maximo"
+    [class.is-invalid]="error()"
+    [attr.aria-describedby]="'receta-fotos-ayuda' + (error() ? ' receta-fotos-error' : '')"
+    (change)="anadir($event)"
+  />
+  @if (error(); as mensaje) {
+    <div class="invalid-feedback d-block" id="receta-fotos-error">{{ mensaje }}</div>
+  }
+</fieldset>

@@ -1,0 +1,61 @@
+# Perfil de los tests de integración (@TestIntegracion).
+# Con Docker, la conexión la sustituye un contenedor MySQL de Testcontainers.
+# Sin Docker se usa TEST_DB_URL, una base de datos que se BORRA al arrancar cada contexto de test (D-016).
+spring:
+  datasource:
+    url: ${TEST_DB_URL:jdbc:mysql://localhost:3307/toca_test}
+  flyway:
+    locations: classpath:db/migration
+    clean-disabled: false
+
+# OpenApiTest compara la descripción de la API con docs/openapi.json (D-073)
+springdoc:
+  api-docs:
+    enabled: true
+
+# Valores fijos: los tests no dependen del .env
+app:
+  base-url: http://localhost:4200
+  # Acceso con Google activado con credenciales de mentira: nunca se llega a hablar con Google (D-085)
+  google:
+    client-id: id-de-prueba
+    client-secret: secreto-de-prueba
+  # Dentro de target/: lo borra "mvnw clean"
+  upload-dir: target/uploads-test
+  # Un build de Angular de mentira: el de verdad no se versiona y puede no existir al pasar los tests
+  frontend:
+    ubicacion: classpath:/static-prueba/
+  jwt:
+    # 48 bytes en Base64, solo para tests
+    secreto: dGVzdHMtYWxpbWVudGFyc2UtY2xhdmUtZGUtcHJ1ZWJhcy0wMTIzNDU2Nzg5LWFiY2Rl
+    expiracion-horas: 8
+    cookie-segura: false
+  # Con el 12 de producción, los tests tardan el doble (D-090). 5 y no 4, el mínimo de bcrypt: así un hash de coste 4
+  # sirve para probar que uno antiguo se rehace al entrar
+  contrasenas:
+    coste-bcrypt: 5
+  admin-inicial:
+    password: admin-de-pruebas
+    email: admin@pruebas.local
+  # Las claves del ejemplo del apéndice A de RFC 8291, públicas: solo para tests. La tarea programada no llega a
+  # ejecutarse; los tests la llaman directamente.
+  push:
+    clave-publica: BP4z9KsN6nGRTbVYI_c7VJSPQTBtkgcy27mlmlMoZIIgDll6e3vCYLocInmYWAmS6TlzAC8wEqKK6PBru3jl7A8
+    clave-privada: yfWPiYE-n46HLnH0KqZOF1fJJU3MYrct3AELtAQ-oRw
+    contacto: mailto:pruebas@toca.local
+    intervalo: PT10H
+  limite-intentos:
+    # Alto, para que los tests que hacen login no se bloqueen entre sí
+    login:
+      maximo: 100
+      ventana: 1m
+    registro:
+      maximo: 1000
+      ventana: 1m
+    acceso-google:
+      maximo: 1000
+      ventana: 1m
+    # Este no: es de cada cuenta, y cada test usa las suyas. Bajo, para probarlo con pocos intentos
+    login-cuenta:
+      maximo: 5
+      ventana: 15m

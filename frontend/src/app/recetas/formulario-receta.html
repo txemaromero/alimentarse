@@ -1,0 +1,286 @@
+<section class="container pb-5">
+  <h1 class="titulo-seccion">{{ esEdicion() ? 'Editar receta' : 'Nueva receta' }}</h1>
+
+  @if (cargando()) {
+    <div class="text-center py-5">
+      <span class="spinner-border text-secondary" role="status">
+        <span class="visually-hidden">Cargando la receta…</span>
+      </span>
+    </div>
+  } @else if (noEncontrada()) {
+    <div class="text-center py-5">
+      <p class="lead">La receta no existe.</p>
+      <a routerLink="/mis-recetas" class="btn btn-primary">Ir a Mis recetas</a>
+    </div>
+  } @else {
+    <form
+      [formGroup]="formulario"
+      (ngSubmit)="guardar()"
+      novalidate
+      class="animate__animated animate__fadeIn"
+    >
+      @if (error(); as mensaje) {
+        <div class="alert alert-danger" role="alert">{{ mensaje }}</div>
+      }
+
+      <div class="row g-4">
+        <div class="col-lg-8">
+          <div class="card card-body mb-4">
+            <label for="receta-titulo" class="form-label">Título</label>
+            <input
+              id="receta-titulo"
+              type="text"
+              class="form-control"
+              formControlName="titulo"
+              maxlength="100"
+              [class.is-invalid]="esInvalido(formulario.controls.titulo)"
+              [attr.aria-invalid]="esInvalido(formulario.controls.titulo)"
+              aria-describedby="receta-titulo-error"
+            />
+            <app-error-campo
+              [control]="formulario.controls.titulo"
+              idMensaje="receta-titulo-error"
+            />
+          </div>
+
+          <fieldset class="card card-body mb-4" aria-describedby="receta-ingredientes-error">
+            <legend class="form-label fs-6 mb-2">Ingredientes</legend>
+            <div class="row g-2 align-items-end">
+              <div class="col-md-6">
+                <label for="receta-ingrediente" class="form-label small mb-1">Ingrediente</label>
+                <input
+                  id="receta-ingrediente"
+                  type="text"
+                  class="form-control"
+                  [formControl]="busqueda"
+                  [ngbTypeahead]="buscarIngredientes"
+                  [inputFormatter]="nombreIngrediente"
+                  [resultTemplate]="resultadoIngrediente"
+                  [editable]="true"
+                  (selectItem)="alElegirIngrediente()"
+                  maxlength="100"
+                  placeholder="Escribe para buscar…"
+                  autocomplete="off"
+                />
+              </div>
+              <div class="col-md-4">
+                <label for="receta-cantidad" class="form-label small mb-1">Cantidad</label>
+                <input
+                  #campoCantidad
+                  id="receta-cantidad"
+                  type="text"
+                  class="form-control"
+                  [formControl]="cantidad"
+                  maxlength="100"
+                  placeholder="200 gramos, 1 cucharada…"
+                  (keydown.enter)="$event.preventDefault(); anadirIngrediente()"
+                />
+              </div>
+              <div class="col-md-2 d-grid">
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  [disabled]="!puedeAnadir()"
+                  (click)="anadirIngrediente()"
+                >
+                  <fa-icon [icon]="iconos.anadir" class="me-1" />Añadir
+                </button>
+              </div>
+            </div>
+            <div class="form-text">
+              ¿No lo encuentras?
+              <button
+                type="button"
+                class="btn btn-link btn-sm p-0 align-baseline"
+                (click)="crearIngrediente()"
+              >
+                <fa-icon [icon]="iconos.crear" class="me-1" />Crear ingrediente
+              </button>
+            </div>
+
+            @if (filas.length > 0) {
+              <ul
+                class="list-unstyled d-flex flex-wrap gap-2 mt-3 mb-0"
+                aria-label="Ingredientes añadidos"
+              >
+                @for (
+                  fila of filas.controls;
+                  track fila.controls.ingrediente.value.id;
+                  let i = $index
+                ) {
+                  <li class="chip">
+                    <span>
+                      <strong>{{ fila.controls.ingrediente.value.nombre }}</strong>
+                      – {{ fila.controls.cantidad.value }}
+                    </span>
+                    <button
+                      type="button"
+                      class="btn-close"
+                      [attr.aria-label]="'Quitar ' + fila.controls.ingrediente.value.nombre"
+                      (click)="quitarIngrediente(i)"
+                    ></button>
+                  </li>
+                }
+              </ul>
+            }
+            @if (errorIngredientes(); as mensaje) {
+              <div class="invalid-feedback d-block" id="receta-ingredientes-error">
+                {{ mensaje }}
+              </div>
+            } @else if (filas.touched && filas.hasError('sinIngredientes')) {
+              <div class="invalid-feedback d-block" id="receta-ingredientes-error">
+                Añade al menos un ingrediente
+              </div>
+            }
+          </fieldset>
+
+          <div class="card card-body">
+            <span id="receta-instrucciones-etiqueta" class="form-label">Instrucciones</span>
+            <app-editor-html
+              formControlName="instrucciones"
+              idCampo="receta-instrucciones"
+              idEtiqueta="receta-instrucciones-etiqueta"
+              descripcion="receta-instrucciones-error"
+              [invalido]="esInvalido(formulario.controls.instrucciones)"
+            />
+            <app-error-campo
+              [control]="formulario.controls.instrucciones"
+              idMensaje="receta-instrucciones-error"
+            />
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="card card-body mb-4">
+            <div class="mb-3">
+              <label for="receta-tipo" class="form-label">Tipo</label>
+              <select
+                id="receta-tipo"
+                class="form-select"
+                formControlName="tipo"
+                [class.is-invalid]="esInvalido(formulario.controls.tipo)"
+                [attr.aria-invalid]="esInvalido(formulario.controls.tipo)"
+                aria-describedby="receta-tipo-error"
+              >
+                <option [ngValue]="null" disabled>Elige un tipo…</option>
+                @for (tipo of tipos(); track tipo.id) {
+                  <option [ngValue]="tipo.id">{{ tipo.nombre }}</option>
+                }
+              </select>
+              <app-error-campo [control]="formulario.controls.tipo" idMensaje="receta-tipo-error" />
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-6">
+                <label for="receta-tiempo" class="form-label">Tiempo (min)</label>
+                <input
+                  id="receta-tiempo"
+                  type="number"
+                  min="1"
+                  max="1440"
+                  class="form-control"
+                  formControlName="tiempo"
+                  [class.is-invalid]="esInvalido(formulario.controls.tiempo)"
+                  [attr.aria-invalid]="esInvalido(formulario.controls.tiempo)"
+                  aria-describedby="receta-tiempo-error"
+                />
+                <app-error-campo
+                  [control]="formulario.controls.tiempo"
+                  idMensaje="receta-tiempo-error"
+                />
+              </div>
+              <div class="col-6">
+                <label for="receta-comensales" class="form-label">Comensales</label>
+                <input
+                  id="receta-comensales"
+                  type="number"
+                  min="1"
+                  max="100"
+                  class="form-control"
+                  formControlName="comensales"
+                  [class.is-invalid]="esInvalido(formulario.controls.comensales)"
+                  [attr.aria-invalid]="esInvalido(formulario.controls.comensales)"
+                  aria-describedby="receta-comensales-error"
+                />
+                <app-error-campo
+                  [control]="formulario.controls.comensales"
+                  idMensaje="receta-comensales-error"
+                />
+              </div>
+            </div>
+
+            <fieldset aria-describedby="receta-dificultad-error">
+              <legend class="form-label fs-6">Dificultad</legend>
+              <div class="btn-group w-100" role="group">
+                @for (dificultad of dificultades; track dificultad) {
+                  <input
+                    type="radio"
+                    class="btn-check"
+                    formControlName="dificultad"
+                    [value]="dificultad"
+                    [id]="'receta-dificultad-' + $index"
+                  />
+                  <label class="btn btn-outline-secondary" [for]="'receta-dificultad-' + $index">
+                    {{ dificultad }}
+                  </label>
+                }
+              </div>
+              <app-error-campo
+                [control]="formulario.controls.dificultad"
+                idMensaje="receta-dificultad-error"
+              />
+            </fieldset>
+          </div>
+
+          <app-editor-fotos class="card card-body mb-4" [iniciales]="fotosIniciales()" />
+
+          <div class="card card-body">
+            <label for="receta-video" class="form-label"
+              >Vídeo <span class="text-body-secondary">(opcional)</span></label
+            >
+            <input
+              id="receta-video"
+              type="url"
+              class="form-control"
+              formControlName="video"
+              placeholder="https://www.youtube.com/…"
+              [class.is-invalid]="esInvalido(formulario.controls.video)"
+              [attr.aria-invalid]="esInvalido(formulario.controls.video)"
+              aria-describedby="receta-video-ayuda receta-video-error"
+            />
+            <div id="receta-video-ayuda" class="form-text">
+              El enlace a un vídeo de la receta en YouTube o Vimeo: en la receta aparece como un
+              enlace.
+            </div>
+            <app-error-campo
+              [control]="formulario.controls.video"
+              idMensaje="receta-video-error"
+              mensajePatron="Pega el enlace de un vídeo de YouTube o Vimeo (https://…)"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex flex-column-reverse flex-sm-row justify-content-end gap-2 mt-4">
+        <button type="button" class="btn btn-outline-secondary" (click)="cancelar()">
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary px-4"
+          [appRequiereConexion]="formulario.invalid || enviando()"
+        >
+          @if (enviando()) {
+            <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+          }
+          Guardar
+        </button>
+      </div>
+    </form>
+  }
+</section>
+
+<ng-template #resultadoIngrediente let-ingrediente="result" let-termino="term">
+  <ngb-highlight [result]="ingrediente.nombre" [term]="termino" />
+  <small class="text-body-secondary ms-1">· {{ ingrediente.grupo.nombre }}</small>
+</ng-template>

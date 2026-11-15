@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="es.alimentarse.receta.RecetaMapper">
+
+    <resultMap id="resumen" type="es.alimentarse.receta.RecetaResumenDto">
+        <constructor>
+            <idArg column="ID" javaType="_int" name="id"/>
+            <arg column="TITULO" javaType="string" name="titulo"/>
+            <arg column="USUARIO" javaType="string" name="autor"/>
+            <arg javaType="es.alimentarse.catalogo.TipoRecetaDto" name="tipo"
+                 resultMap="es.alimentarse.catalogo.CatalogoMapper.tipoReceta" columnPrefix="T_"/>
+            <arg column="IMAGEN_URL" javaType="string" name="imagen"/>
+            <arg column="TIEMPO" javaType="_int" name="tiempo"/>
+            <arg column="COMENSALES" javaType="_int" name="comensales"/>
+            <arg column="DIFICULTAD" javaType="string" name="dificultad"/>
+            <arg column="LIKES" javaType="_long" name="likes"/>
+            <arg column="ME_GUSTA" javaType="_boolean" name="meGusta"/>
+            <arg column="NOTA" javaType="java.lang.Double" name="nota"/>
+            <arg column="VALORACIONES" javaType="_long" name="valoraciones"/>
+            <arg column="PUBLICADA" javaType="_boolean" name="publicada"/>
+            <arg column="FECHA_CREACION" javaType="java.time.Instant" name="fechaCreacion"/>
+            <arg column="ELIMINADA" javaType="_boolean" name="eliminada"/>
+            <arg column="OCULTA" javaType="_boolean" name="oculta"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="base" type="es.alimentarse.receta.RecetaBase">
+        <constructor>
+            <idArg column="ID" javaType="_int" name="id"/>
+            <arg column="TITULO" javaType="string" name="titulo"/>
+            <arg column="INSTRUCCIONES" javaType="string" name="instrucciones"/>
+            <arg column="USUARIO" javaType="string" name="autor"/>
+            <arg javaType="es.alimentarse.catalogo.TipoRecetaDto" name="tipo"
+                 resultMap="es.alimentarse.catalogo.CatalogoMapper.tipoReceta" columnPrefix="T_"/>
+            <arg column="PUBLICADA" javaType="_boolean" name="publicada"/>
+            <arg column="ELIMINADA" javaType="_boolean" name="eliminada"/>
+            <arg column="OCULTA" javaType="_boolean" name="oculta"/>
+            <arg column="MOTIVO_OCULTA" javaType="string" name="motivoOculta"/>
+            <arg column="IMAGEN" javaType="string" name="imagen"/>
+            <arg column="TIEMPO" javaType="_int" name="tiempo"/>
+            <arg column="COMENSALES" javaType="_int" name="comensales"/>
+            <arg column="DIFICULTAD" javaType="string" name="dificultad"/>
+            <arg column="LIKES" javaType="_long" name="likes"/>
+            <arg column="ME_GUSTA" javaType="_boolean" name="meGusta"/>
+            <arg column="NOTA" javaType="java.lang.Double" name="nota"/>
+            <arg column="VALORACIONES" javaType="_long" name="valoraciones"/>
+            <arg column="FECHA_CREACION" javaType="java.time.Instant" name="fechaCreacion"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="ingredienteReceta" type="es.alimentarse.receta.IngredienteRecetaDto">
+        <constructor>
+            <idArg column="ID" javaType="_int" name="id"/>
+            <arg column="NOMBRE" javaType="string" name="nombre"/>
+            <arg column="CANTIDAD" javaType="string" name="cantidad"/>
+            <arg javaType="es.alimentarse.catalogo.GrupoDto" name="grupo"
+                 resultMap="es.alimentarse.catalogo.CatalogoMapper.grupo" columnPrefix="G_"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="sugerencia" type="es.alimentarse.receta.SugerenciaRecetaDto">
+        <constructor>
+            <idArg column="ID" javaType="_int" name="id"/>
+            <arg column="TITULO" javaType="string" name="titulo"/>
+        </constructor>
+    </resultMap>
+
+    <!-- Likes y "me gusta" del usuario actual (#{yo}) calculados en la misma consulta -->
+    <sql id="likes">
+        (SELECT COUNT(*) FROM like_receta l WHERE l.RECETA = r.ID) AS LIKES,
+        EXISTS (SELECT 1 FROM like_receta l WHERE l.RECETA = r.ID AND l.USUARIO = #{yo}) AS ME_GUSTA
+    </sql>
+
+    <!-- Nota media (un decimal) y número de las valoraciones visibles (D-077) -->
+    <sql id="valoraciones">
+        (SELECT ROUND(AVG(v.NOTA), 1) FROM valoracion_receta v WHERE v.RECETA = r.ID AND NOT v.OCULTA) AS NOTA,
+        (SELECT COUNT(*) FROM valoracion_receta v WHERE v.RECETA = r.ID AND NOT v.OCULTA) AS VALORACIONES
+    </sql>
+
+    <!--
+        Columnas de la tarjeta (resultMap "resumen") sobre los alias r (recetas) y t (tipo_receta). Otros mappers las
+        reutilizan con <include refid="es.alimentarse.receta.RecetaMapper.columnasResumen"> y una propiedad "prefijo"
+        (p. ej. R_) que debe coincidir con el columnPrefix del resultMap. "prefijo" es una constante del XML que MyBatis
+        sustituye al cargarlo: nunca lleva datos del usuario (D-042). Necesita el parámetro #{yo}.
+    -->
+    <sql id="columnasResumen">
+        r.ID AS ${prefijo}ID, r.TITULO AS ${prefijo}TITULO, r.USUARIO AS ${prefijo}USUARIO,
+        CONCAT('/api/imagenes/', r.IMAGEN) AS ${prefijo}IMAGEN_URL,
+        r.TIEMPO AS ${prefijo}TIEMPO, r.COMENSALES AS ${prefijo}COMENSALES, r.DIFICULTAD AS ${prefijo}DIFICULTAD,
+        r.PUBLICADA AS ${prefijo}PUBLICADA, r.FECHA_CREACION AS ${prefijo}FECHA_CREACION,
+        r.ELIMINADA AS ${prefijo}ELIMINADA, r.OCULTA AS ${prefijo}OCULTA,
+        t.ID AS ${prefijo}T_ID, t.NOMBRE AS ${prefijo}T_NOMBRE,
+        (SELECT COUNT(*) FROM like_receta l WHERE l.RECETA = r.ID) AS ${prefijo}LIKES,
+        EXISTS (SELECT 1 FROM like_receta l WHERE l.RECETA = r.ID AND l.USUARIO = #{yo}) AS ${prefijo}ME_GUSTA,
+        (SELECT ROUND(AVG(v.NOTA), 1) FROM valoracion_receta v WHERE v.RECETA = r.ID AND NOT v.OCULTA)
+            AS ${prefijo}NOTA,
+        (SELECT COUNT(*) FROM valoracion_receta v WHERE v.RECETA = r.ID AND NOT v.OCULTA) AS ${prefijo}VALORACIONES
+    </sql>
+
+    <!--
+        Filtros de la sección 6.5 sobre un FiltroRecetas (parámetro "filtro"). Los textos ya llegan como patrones
+        LIKE escapados y la colación ignora mayúsculas y acentos. gruposExcluidos: recomendación (6.3), la receta no
+        puede tener ningún ingrediente de los grupos agotados. Las recetas eliminadas no salen nunca (D-061). Las
+        «publicadas» son las que ve todo el mundo: las ocultas por la administración no cuentan (D-063).
+    -->
+    <sql id="filtro">
+        <where>
+            r.ELIMINADA = FALSE
+            <if test="filtro.soloPublicadas">AND r.PUBLICADA = TRUE AND r.OCULTA = FALSE</if>
+            <if test="filtro.soloOcultas">AND r.OCULTA = TRUE</if>
+            <if test="filtro.autor != null">AND r.USUARIO = #{filtro.autor}</if>
+            <if test="filtro.meGustaDe != null">
+                AND EXISTS (SELECT 1 FROM like_receta lm WHERE lm.RECETA = r.ID AND lm.USUARIO = #{filtro.meGustaDe})
+            </if>
+            <if test="filtro.titulo != null">AND r.TITULO LIKE #{filtro.titulo} ESCAPE '\\'</if>
+            <if test="filtro.tipo != null">AND r.TIPO = #{filtro.tipo}</if>
+            <if test="filtro.usuario != null">AND r.USUARIO LIKE #{filtro.usuario} ESCAPE '\\'</if>
+            <if test="filtro.dificultad != null">AND r.DIFICULTAD = #{filtro.dificultad}</if>
+            <if test="filtro.comensales != null">AND r.COMENSALES &gt;= #{filtro.comensales}</if>
+            <if test="filtro.tiempoMax != null">AND r.TIEMPO &lt;= #{filtro.tiempoMax}</if>
+            <if test="!filtro.ingredientes.isEmpty()">
+                <bind name="numeroIngredientes" value="filtro.ingredientes.size()"/>
+                AND (SELECT COUNT(DISTINCT ir.INGREDIENTE)
+                     FROM ingrediente_receta ir
+                     WHERE ir.RECETA = r.ID
+                       AND ir.INGREDIENTE IN
+                       <foreach item="ingrediente" collection="filtro.ingredientes" open="(" separator="," close=")">
+                           #{ingrediente}
+                       </foreach>
+                    ) = #{numeroIngredientes}
+            </if>
+            <if test="!filtro.gruposExcluidos.isEmpty()">
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM ingrediente_receta ire
+                    JOIN ingredientes ie ON ie.ID = ire.INGREDIENTE
+                    WHERE ire.RECETA = r.ID
+                      AND ie.GRUPO IN
+                      <foreach item="grupo" collection="filtro.gruposExcluidos" open="(" separator="," close=")">
+                          #{grupo}
+                      </foreach>
+                )
+            </if>
+        </where>
+    </sql>
+
+    <select id="buscar" resultMap="resumen">
+        SELECT
+        <include refid="columnasResumen"><property name="prefijo" value=""/></include>
+        FROM recetas r
+        JOIN tipo_receta t ON t.ID = r.TIPO
+        <include refid="filtro"/>
+        ORDER BY
+        <choose>
+            <!--
+                Media ponderada (D-077): cada receta parte de dos notas imaginarias de 3, así que una sola valoración
+                de 5 no adelanta a muchas de 4. Sin valoraciones queda en 3. A igualdad, los «me gusta».
+            -->
+            <when test="orden.name() == 'MAS_VALORADAS'">
+                (SELECT (COALESCE(SUM(v.NOTA), 0) + 6) / (COUNT(*) + 2)
+                 FROM valoracion_receta v WHERE v.RECETA = r.ID AND NOT v.OCULTA) DESC,
+                LIKES DESC, r.FECHA_CREACION DESC, r.ID DESC
+            </when>
+            <when test="orden.name() == 'ME_GUSTA_RECIENTES'">
+                (SELECT lo.FECHA FROM like_receta lo WHERE lo.RECETA = r.ID AND lo.USUARIO = #{yo}) DESC, r.ID DESC
+            </when>
+            <otherwise>r.FECHA_CREACION DESC, r.ID DESC</otherwise>
+        </choose>
+        LIMIT #{limite} OFFSET #{desplazamiento}
+    </select>
+
+    <!-- ORDER BY de una condición: las que no la cumplen (0) van primero (D-067) -->
+    <select id="buscarPorVariedad" resultMap="resumen">
+        SELECT
+        <include refid="columnasResumen"><property name="prefijo" value=""/></include>
+        FROM recetas r
+        JOIN tipo_receta t ON t.ID = r.TIPO
+        <include refid="filtro"/>
+        ORDER BY
+        <if test="!cercaDelLimite.isEmpty()">
+            EXISTS (
+                SELECT 1
+                FROM ingrediente_receta irl
+                JOIN ingredientes il ON il.ID = irl.INGREDIENTE
+                WHERE irl.RECETA = r.ID
+                  AND il.GRUPO IN
+                  <foreach item="grupo" collection="cercaDelLimite" open="(" separator="," close=")">#{grupo}</foreach>
+            ),
+        </if>
+        <if test="!consumidos.isEmpty()">
+            EXISTS (
+                SELECT 1
+                FROM ingrediente_receta irc
+                JOIN ingredientes ic ON ic.ID = irc.INGREDIENTE
+                WHERE irc.RECETA = r.ID
+                  AND ic.GRUPO IN
+                  <foreach item="grupo" collection="consumidos" open="(" separator="," close=")">#{grupo}</foreach>
+            ),
+        </if>
+        LIKES DESC, r.FECHA_CREACION DESC, r.ID DESC
+        LIMIT #{limite} OFFSET #{desplazamiento}
+    </select>
+
+    <!-- Incluye las eliminadas: el histórico de consumos las sigue mostrando -->
+    <select id="buscarPorIds" resultMap="resumen">
+        SELECT
+        <include refid="columnasResumen"><property name="prefijo" value=""/></include>
+        FROM recetas r
+        JOIN tipo_receta t ON t.ID = r.TIPO
+        WHERE r.ID IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">#{id}</foreach>
+    </select>
+
+    <select id="contar" resultType="_long">
+        SELECT COUNT(*) FROM recetas r
+        <include refid="filtro"/>
+    </select>
+
+    <select id="sugerencias" resultMap="sugerencia">
+        SELECT r.ID, r.TITULO
+        FROM recetas r
+        WHERE r.PUBLICADA = TRUE AND r.OCULTA = FALSE AND r.TITULO LIKE #{contiene} ESCAPE '\\'
+        ORDER BY (r.TITULO LIKE #{prefijo} ESCAPE '\\') DESC, r.TITULO, r.ID
+        LIMIT #{limite}
+    </select>
+
+    <select id="buscarBase" resultMap="base">
+        SELECT r.ID, r.TITULO, r.INSTRUCCIONES, r.USUARIO, r.PUBLICADA, r.ELIMINADA, r.OCULTA, r.MOTIVO_OCULTA,
+               r.IMAGEN,
+               r.TIEMPO, r.COMENSALES, r.DIFICULTAD, r.FECHA_CREACION,
+               t.ID AS T_ID, t.NOMBRE AS T_NOMBRE,
+               <include refid="likes"/>,
+               <include refid="valoraciones"/>
+        FROM recetas r
+        JOIN tipo_receta t ON t.ID = r.TIPO
+        WHERE r.ID = #{id}
+    </select>
+
+    <select id="ingredientesDe" resultMap="ingredienteReceta">
+        SELECT i.ID, i.NOMBRE, ir.CANTIDAD,
+               g.ID AS G_ID, g.NOMBRE AS G_NOMBRE, g.RACIONES_SEMANA AS G_RACIONES_SEMANA
+        FROM ingrediente_receta ir
+        JOIN ingredientes i ON i.ID = ir.INGREDIENTE
+        JOIN grupo_ingrediente g ON g.ID = i.GRUPO
+        WHERE ir.RECETA = #{receta}
+        ORDER BY i.NOMBRE, i.ID
+    </select>
+
+    <select id="contarIngredientesExistentes" resultType="_int">
+        SELECT COUNT(*) FROM ingredientes WHERE ID IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">#{id}</foreach>
+    </select>
+
+    <insert id="insertar">
+        INSERT INTO recetas (TITULO, INSTRUCCIONES, USUARIO, TIPO, PUBLICADA, IMAGEN, TIEMPO, COMENSALES, DIFICULTAD)
+        VALUES (#{titulo}, #{instrucciones}, #{usuario}, #{tipo}, FALSE, #{imagen}, #{tiempo}, #{comensales},
+                #{dificultad})
+    </insert>
+
+    <select id="ultimoIdInsertado" resultType="_int">
+        SELECT LAST_INSERT_ID()
+    </select>
+
+    <select id="contarDelAutor" resultType="_int">
+        SELECT COUNT(*) FROM recetas WHERE USUARIO = #{usuario} AND ELIMINADA = FALSE
+    </select>
+
+    <update id="actualizar">
+        UPDATE recetas
+        SET TITULO = #{titulo}, INSTRUCCIONES = #{instrucciones}, TIPO = #{tipo}, IMAGEN = #{imagen},
+            TIEMPO = #{tiempo}, COMENSALES = #{comensales}, DIFICULTAD = #{dificultad}
+        WHERE ID = #{id}
+    </update>
+
+    <!--
+        Bloquea la fila antes de eliminarla. Debe ser la primera lectura de la transacción: así la comprobación de
+        consumos ve los que otra transacción haya confirmado mientras se esperaba el bloqueo (D-061).
+    -->
+    <select id="bloquear" resultType="java.lang.Integer">
+        SELECT ID FROM recetas WHERE ID = #{id} FOR UPDATE
+    </select>
+
+    <select id="tieneConsumos" resultType="boolean">
+        SELECT EXISTS (SELECT 1 FROM usuario_receta_consumida WHERE RECETA = #{receta})
+    </select>
+
+    <!-- Borrado lógico: deja de estar publicada y pierde la imagen; conserva el título y los ingredientes -->
+    <update id="marcarEliminada">
+        UPDATE recetas SET ELIMINADA = TRUE, PUBLICADA = FALSE, IMAGEN = NULL, VIDEO = NULL WHERE ID = #{id}
+    </update>
+
+    <delete id="borrarLikes">
+        DELETE FROM like_receta WHERE RECETA = #{receta}
+    </delete>
+
+    <!-- Sus ingredientes y sus «me gusta» se borran en cascada -->
+    <delete id="borrar">
+        DELETE FROM recetas WHERE ID = #{id}
+    </delete>
+
+    <update id="actualizarOculta">
+        UPDATE recetas SET OCULTA = #{oculta}, MOTIVO_OCULTA = #{motivo} WHERE ID = #{id}
+    </update>
+
+    <update id="actualizarPublicada">
+        UPDATE recetas SET PUBLICADA = #{publicada} WHERE ID = #{id}
+    </update>
+
+    <delete id="borrarIngredientes">
+        DELETE FROM ingrediente_receta WHERE RECETA = #{receta}
+    </delete>
+
+    <resultMap id="foto" type="es.alimentarse.receta.FotoReceta">
+        <constructor>
+            <idArg column="NOMBRE" javaType="string" name="nombre"/>
+            <arg column="ORDEN" javaType="_int" name="orden"/>
+            <arg column="DESCRIPCION" javaType="string" name="descripcion"/>
+        </constructor>
+    </resultMap>
+
+    <select id="videoDe" resultType="string">
+        SELECT VIDEO FROM recetas WHERE ID = #{receta}
+    </select>
+
+    <update id="guardarVideo">
+        UPDATE recetas SET VIDEO = #{video} WHERE ID = #{receta}
+    </update>
+
+    <select id="fotosDe" resultMap="foto">
+        SELECT NOMBRE, ORDEN, DESCRIPCION FROM foto_receta WHERE RECETA = #{receta} ORDER BY ORDEN
+    </select>
+
+    <delete id="borrarFotos">
+        DELETE FROM foto_receta WHERE RECETA = #{receta}
+    </delete>
+
+    <insert id="insertarFotos">
+        INSERT INTO foto_receta (RECETA, NOMBRE, ORDEN, DESCRIPCION) VALUES
+        <foreach item="foto" collection="fotos" separator=",">
+            (#{receta}, #{foto.nombre}, #{foto.orden}, #{foto.descripcion})
+        </foreach>
+    </insert>
+
+    <insert id="insertarIngredientes">
+        INSERT INTO ingrediente_receta (INGREDIENTE, RECETA, CANTIDAD) VALUES
+        <foreach item="item" collection="ingredientes" separator=",">
+            (#{item.ingrediente}, #{receta}, #{item.cantidad})
+        </foreach>
+    </insert>
+
+    <insert id="darLike">
+        INSERT INTO like_receta (USUARIO, RECETA, FECHA) VALUES (#{usuario}, #{receta}, #{fecha})
+        ON DUPLICATE KEY UPDATE USUARIO = USUARIO
+    </insert>
+
+    <delete id="quitarLike">
+        DELETE FROM like_receta WHERE USUARIO = #{usuario} AND RECETA = #{receta}
+    </delete>
+
+    <select id="contarLikes" resultType="_long">
+        SELECT COUNT(*) FROM like_receta WHERE RECETA = #{receta}
+    </select>
+</mapper>

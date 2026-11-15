@@ -1,0 +1,21 @@
+# Perfil de las pruebas de extremo a extremo (frontend/e2e, Playwright). Lo arranca playwright.config.ts contra una
+# base de datos desechable (por defecto, la de los tests: TEST_DB_URL). NUNCA contra la de desarrollo o producción:
+# al arrancar se vacía (E2eConfig).
+spring:
+  flyway:
+    clean-disabled: false
+
+app:
+  jwt:
+    cookie-segura: false
+  limite-intentos:
+    # Las pruebas inician sesión varias veces seguidas desde la misma IP
+    login:
+      maximo: 100
+    registro:
+      maximo: 1000
+
+logging:
+  level:
+    root: WARN
+    es.alimentarse: INFO

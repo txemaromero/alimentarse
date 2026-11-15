@@ -1,0 +1,115 @@
+<h2 class="h6 text-uppercase">Información nutricional</h2>
+
+@if (cargando()) {
+  <div class="py-2">
+    <span class="spinner-border spinner-border-sm text-secondary" role="status">
+      <span class="visually-hidden">Calculando la información nutricional…</span>
+    </span>
+  </div>
+} @else if (fallo()) {
+  <div class="d-flex align-items-center gap-2 small d-print-none">
+    <span class="flex-grow-1">No se ha podido calcular.</span>
+    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="reintentar()">
+      Reintentar
+    </button>
+  </div>
+} @else if (datos(); as n) {
+  @if (n.porRacion && n.total) {
+    <p class="small text-body-secondary mb-2">
+      Estimación orientativa con {{ calculados() }} de {{ n.ingredientes.length }} ingredientes.
+    </p>
+    <table class="table table-sm small mb-2 tabla-nutricion">
+      <caption class="visually-hidden">
+        Valores nutricionales estimados por ración y de la receta entera
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Nutriente</th>
+          <th scope="col" class="text-end">Por ración</th>
+          <th scope="col" class="text-end">
+            Receta
+            <span class="d-block fw-normal text-nowrap">({{ raciones(n.comensales) }})</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">Energía</th>
+          <td class="text-end">
+            {{ n.porRacion.energiaKcal | number: '1.0-0' }} kcal
+            <span class="d-block text-body-secondary"
+              >{{ n.porRacion.energiaKj | number: '1.0-0' }} kJ</span
+            >
+          </td>
+          <td class="text-end">
+            {{ n.total.energiaKcal | number: '1.0-0' }} kcal
+            <span class="d-block text-body-secondary"
+              >{{ n.total.energiaKj | number: '1.0-0' }} kJ</span
+            >
+          </td>
+        </tr>
+        <tr>
+          <th scope="row">Grasas</th>
+          <td class="text-end">{{ n.porRacion.grasas | number: '1.0-1' }} g</td>
+          <td class="text-end">{{ n.total.grasas | number: '1.0-1' }} g</td>
+        </tr>
+        <tr>
+          <th scope="row" class="ps-3 fw-normal">de las cuales saturadas</th>
+          <td class="text-end">{{ n.porRacion.grasasSaturadas | number: '1.0-1' }} g</td>
+          <td class="text-end">{{ n.total.grasasSaturadas | number: '1.0-1' }} g</td>
+        </tr>
+        <tr>
+          <th scope="row">Hidratos de carbono</th>
+          <td class="text-end">{{ n.porRacion.hidratos | number: '1.0-1' }} g</td>
+          <td class="text-end">{{ n.total.hidratos | number: '1.0-1' }} g</td>
+        </tr>
+        <tr>
+          <th scope="row">Fibra</th>
+          <td class="text-end">{{ n.porRacion.fibra | number: '1.0-1' }} g</td>
+          <td class="text-end">{{ n.total.fibra | number: '1.0-1' }} g</td>
+        </tr>
+        <tr>
+          <th scope="row">Proteínas</th>
+          <td class="text-end">{{ n.porRacion.proteinas | number: '1.0-1' }} g</td>
+          <td class="text-end">{{ n.total.proteinas | number: '1.0-1' }} g</td>
+        </tr>
+        <tr>
+          <th scope="row">Sal</th>
+          <td class="text-end">{{ n.porRacion.sal | number: '1.0-2' }} g</td>
+          <td class="text-end">{{ n.total.sal | number: '1.0-2' }} g</td>
+        </tr>
+      </tbody>
+    </table>
+  } @else {
+    <p class="small mb-2 sin-estimacion">
+      No se puede estimar: ningún ingrediente tiene a la vez datos de composición y una cantidad que
+      se pueda pasar a gramos.
+    </p>
+  }
+
+  <details class="small mb-2">
+    <summary>Cómo se calcula</summary>
+    <ul class="mt-2 mb-2 ps-3 ingredientes-nutricion">
+      @for (ingrediente of n.ingredientes; track ingrediente.id) {
+        <li [class.text-body-secondary]="ingrediente.estado !== 'CALCULADO'">
+          <strong>{{ ingrediente.nombre }}</strong> ({{ ingrediente.cantidad }}):
+          {{ detalle(ingrediente) }}
+        </li>
+      }
+    </ul>
+    <p class="mb-2">
+      Se suman los valores por 100 g de cada alimento. Las cantidades se toman como parte
+      comestible, un mililitro cuenta como un gramo, una cucharada como 15 g y una cucharadita como
+      5 g, y las unidades, dientes y lonchas tienen un peso aproximado. Cuenta todo el aceite,
+      aunque al freír no se absorba entero. La sal se calcula con el sodio (sodio × 2,5). Si la base
+      de datos no da un valor, no se suma. No es una etiqueta nutricional ni un consejo médico.
+    </p>
+  </details>
+
+  <p class="small text-body-secondary mb-0 fuente">
+    Fuente:
+    <a href="https://www.bedca.net/" target="_blank" rel="noopener"
+      >{{ fuente }}<span class="visually-hidden"> (se abre en otra pestaña)</span></a
+    >.
+  </p>
+}

@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="es.alimentarse.usuario.UsuarioMapper">
+
+    <resultMap id="usuario" type="es.alimentarse.usuario.Usuario">
+        <constructor>
+            <idArg column="ID" javaType="string" name="id"/>
+            <arg column="NOMBRE" javaType="string" name="nombre"/>
+            <arg column="APELLIDO1" javaType="string" name="apellido1"/>
+            <arg column="APELLIDO2" javaType="string" name="apellido2"/>
+            <arg column="EMAIL" javaType="string" name="email"/>
+            <arg column="PASSWORD" javaType="string" name="password"/>
+            <arg column="TOKEN_PASSWORD" javaType="string" name="tokenPassword"/>
+            <arg column="TOKEN_EXPIRACION" javaType="java.time.Instant" name="tokenExpiracion"/>
+            <arg column="BLOQUEADO" javaType="_boolean" name="bloqueado"/>
+            <arg column="GOOGLE_ID" javaType="string" name="googleId"/>
+            <arg column="EMAIL_VERIFICADO" javaType="_boolean" name="emailVerificado"/>
+            <arg column="EMAIL_PENDIENTE" javaType="string" name="emailPendiente"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="columnas">
+        ID, NOMBRE, APELLIDO1, APELLIDO2, EMAIL, PASSWORD, TOKEN_PASSWORD, TOKEN_EXPIRACION, BLOQUEADO, GOOGLE_ID,
+        EMAIL_VERIFICADO, EMAIL_PENDIENTE
+    </sql>
+
+    <select id="buscarPorId" resultMap="usuario">
+        SELECT <include refid="columnas"/> FROM usuarios WHERE ID = #{id}
+    </select>
+
+    <select id="buscarPorEmail" resultMap="usuario">
+        SELECT <include refid="columnas"/> FROM usuarios WHERE EMAIL = #{email}
+    </select>
+
+    <select id="buscarPorGoogleId" resultMap="usuario">
+        SELECT <include refid="columnas"/> FROM usuarios WHERE GOOGLE_ID = #{googleId}
+    </select>
+
+    <!-- Solo si no está vinculada: con dos peticiones a la vez, la segunda no sustituye a la primera (D-086) -->
+    <update id="vincularGoogle">
+        UPDATE usuarios SET GOOGLE_ID = #{googleId} WHERE ID = #{id} AND GOOGLE_ID IS NULL
+    </update>
+
+    <update id="desvincularGoogle">
+        UPDATE usuarios SET GOOGLE_ID = NULL WHERE ID = #{id}
+    </update>
+
+    <select id="buscarPorTokenPassword" resultMap="usuario">
+        SELECT <include refid="columnas"/> FROM usuarios WHERE TOKEN_PASSWORD = #{hashToken}
+    </select>
+
+    <!-- En cada petición con token (EstadoCuentas): por clave primaria -->
+    <resultMap id="estadoSesion" type="es.alimentarse.usuario.EstadoSesion">
+        <constructor>
+            <arg column="BLOQUEADO" javaType="_boolean" name="bloqueado"/>
+            <arg column="VERSION_SESION" javaType="_int" name="version"/>
+        </constructor>
+    </resultMap>
+
+    <select id="estadoSesion" resultMap="estadoSesion">
+        SELECT BLOQUEADO, VERSION_SESION FROM usuarios WHERE ID = #{id}
+    </select>
+
+    <select id="versionSesion" resultType="_int">
+        SELECT VERSION_SESION FROM usuarios WHERE ID = #{id}
+    </select>
+
+    <update id="anularSesiones">
+        UPDATE usuarios SET VERSION_SESION = VERSION_SESION + 1 WHERE ID = #{id}
+    </update>
+
+    <update id="actualizarBloqueado">
+        UPDATE usuarios SET BLOQUEADO = #{bloqueado} WHERE ID = #{id}
+    </update>
+
+    <select id="hayAdministradores" resultType="boolean">
+        SELECT EXISTS (SELECT 1 FROM usuario_rol ur JOIN roles r ON r.ID = ur.ROL WHERE r.NOMBRE = 'ADMIN')
+    </select>
+
+    <select id="existeId" resultType="boolean">
+        SELECT EXISTS (SELECT 1 FROM usuarios WHERE ID = #{id})
+    </select>
+
+    <select id="existeEmail" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1 FROM usuarios WHERE EMAIL = #{email}
+            <if test="exceptoId != null">AND ID &lt;&gt; #{exceptoId}</if>
+        )
+    </select>
+
+    <!--
+        La versión de sesión empieza en un valor al azar (D-089): tras una baja, el nombre de usuario queda libre
+        (D-064), y una cuenta nueva con ese nombre no debe aceptar los tokens que aún no hayan caducado de la anterior.
+        Como mucho mil millones, para que los incrementos (D-070) nunca desborden el INT.
+    -->
+    <insert id="insertar">
+        INSERT INTO usuarios (ID, NOMBRE, APELLIDO1, APELLIDO2, EMAIL, PASSWORD, VERSION_SESION)
+        VALUES (#{id}, #{nombre}, #{apellido1}, #{apellido2}, #{email}, #{password}, FLOOR(RAND() * 1000000000))
+    </insert>
+
+    <insert id="asignarRol">
+        INSERT INTO usuario_rol (USUARIO, ROL)
+        SELECT #{usuario}, ID FROM roles WHERE NOMBRE = #{rol}
+    </insert>
+
+    <delete id="quitarRol">
+        DELETE ur FROM usuario_rol ur
+        JOIN roles r ON r.ID = ur.ROL
+        WHERE ur.USUARIO = #{usuario} AND r.NOMBRE = #{rol}
+    </delete>
+
+    <select id="rolesDe" resultType="string">
+        SELECT r.NOMBRE
+        FROM usuario_rol ur
+        JOIN roles r ON r.ID = ur.ROL
+        WHERE ur.USUARIO = #{id}
+        ORDER BY r.ID
+    </select>
+
+    <update id="actualizarPerfil">
+        UPDATE usuarios
+        SET NOMBRE = #{nombre}, APELLIDO1 = #{apellido1}, APELLIDO2 = #{apellido2}, EMAIL = #{email}
+        WHERE ID = #{id}
+    </update>
+
+    <update id="actualizarPassword">
+        UPDATE usuarios
+        SET PASSWORD = #{password}, TOKEN_PASSWORD = NULL, TOKEN_EXPIRACION = NULL,
+            VERSION_SESION = VERSION_SESION + 1
+        WHERE ID = #{id}
+    </update>
+
+    <!-- Comparación binaria: la colación de la tabla no distingue mayúsculas, y un hash sí -->
+    <update id="rehacerHashPassword">
+        UPDATE usuarios
+        SET PASSWORD = #{nuevo}
+        WHERE ID = #{id} AND PASSWORD COLLATE utf8mb4_bin = #{anterior}
+    </update>
+
+    <!-- Confirmación del email (D-088): un enlace a la vez; con emailPendiente, para cambiarlo por ese -->
+    <update id="guardarTokenEmail">
+        UPDATE usuarios
+        SET TOKEN_EMAIL = #{hashToken}, TOKEN_EMAIL_EXPIRACION = #{expiracion}, EMAIL_PENDIENTE = #{emailPendiente}
+        WHERE ID = #{id}
+    </update>
+
+    <select id="buscarPorTokenEmail" resultMap="usuario">
+        SELECT <include refid="columnas"/> FROM usuarios
+        WHERE TOKEN_EMAIL = #{hashToken} AND TOKEN_EMAIL_EXPIRACION &gt; #{ahora}
+    </select>
+
+    <!-- Si había un email nuevo, pasa a ser el de la cuenta -->
+    <update id="confirmarEmail">
+        UPDATE usuarios
+        SET EMAIL = COALESCE(EMAIL_PENDIENTE, EMAIL), EMAIL_PENDIENTE = NULL, EMAIL_VERIFICADO = TRUE,
+            TOKEN_EMAIL = NULL, TOKEN_EMAIL_EXPIRACION = NULL
+        WHERE ID = #{id}
+    </update>
+
+    <update id="cancelarCambioEmail">
+        UPDATE usuarios SET EMAIL_PENDIENTE = NULL, TOKEN_EMAIL = NULL, TOKEN_EMAIL_EXPIRACION = NULL WHERE ID = #{id}
+    </update>
+
+    <!-- Lo ha verificado otro camino: Google, o el enlace de recuperación, que llega a ese email -->
+    <update id="marcarEmailVerificado">
+        UPDATE usuarios SET EMAIL_VERIFICADO = TRUE WHERE ID = #{id}
+    </update>
+
+    <!-- Un enlace de recuperación pedido para el email anterior deja de valer (D-086) -->
+    <update id="anularRecuperacion">
+        UPDATE usuarios SET TOKEN_PASSWORD = NULL, TOKEN_EXPIRACION = NULL WHERE ID = #{id}
+    </update>
+
+    <update id="guardarTokenPassword">
+        UPDATE usuarios SET TOKEN_PASSWORD = #{hashToken}, TOKEN_EXPIRACION = #{expiracion} WHERE ID = #{id}
+    </update>
+</mapper>

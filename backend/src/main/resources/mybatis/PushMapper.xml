@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="es.alimentarse.push.PushMapper">
+
+    <resultMap id="suscripcion" type="es.alimentarse.push.SuscripcionPush">
+        <constructor>
+            <idArg column="ID" javaType="_long" name="id"/>
+            <arg column="USUARIO" javaType="string" name="usuario"/>
+            <arg column="ENDPOINT" javaType="string" name="endpoint"/>
+            <arg column="P256DH" javaType="string" name="p256dh"/>
+            <arg column="AUTH" javaType="string" name="auth"/>
+            <arg column="ZONA" javaType="string" name="zona"/>
+            <arg column="FECHA" javaType="java.time.Instant" name="fecha"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="comida" type="es.alimentarse.push.ComidaPorAvisar">
+        <constructor>
+            <idArg column="ID" javaType="_long" name="id"/>
+            <arg column="USUARIO" javaType="string" name="usuario"/>
+            <arg column="RECETA" javaType="_int" name="receta"/>
+            <arg column="TITULO" javaType="string" name="titulo"/>
+            <arg column="FECHA" javaType="java.time.Instant" name="fecha"/>
+        </constructor>
+    </resultMap>
+
+    <select id="contarOtros" resultType="_int">
+        SELECT COUNT(*) FROM suscripcion_push WHERE USUARIO = #{usuario} AND ENDPOINT_HASH &lt;&gt; #{hash}
+    </select>
+
+    <insert id="guardar">
+        INSERT INTO suscripcion_push (USUARIO, ENDPOINT, ENDPOINT_HASH, P256DH, AUTH, ZONA, FECHA)
+        VALUES (#{usuario}, #{endpoint}, #{hash}, #{p256dh}, #{auth}, #{zona}, #{fecha}) AS nueva
+        ON DUPLICATE KEY UPDATE
+            USUARIO = nueva.USUARIO, P256DH = nueva.P256DH, AUTH = nueva.AUTH, ZONA = nueva.ZONA, FECHA = nueva.FECHA
+    </insert>
+
+    <delete id="borrar">
+        DELETE FROM suscripcion_push WHERE USUARIO = #{usuario} AND ENDPOINT_HASH = #{hash}
+    </delete>
+
+    <delete id="borrarPorId">
+        DELETE FROM suscripcion_push WHERE ID = #{id}
+    </delete>
+
+    <select id="deUsuario" resultMap="suscripcion">
+        SELECT ID, USUARIO, ENDPOINT, P256DH, AUTH, ZONA, FECHA
+        FROM suscripcion_push
+        WHERE USUARIO = #{usuario}
+        ORDER BY ID
+    </select>
+
+    <select id="comidasPorAvisar" resultMap="comida">
+        SELECT p.ID, p.USUARIO, p.RECETA, r.TITULO, p.FECHA
+        FROM usuario_receta_planificada p
+        JOIN recetas r ON r.ID = p.RECETA
+        JOIN usuarios u ON u.ID = p.USUARIO
+        WHERE p.AVISADA IS NULL
+          AND p.FECHA &gt; #{desde} AND p.FECHA &lt;= #{hasta}
+          AND NOT u.BLOQUEADO
+          AND NOT r.ELIMINADA
+          AND (r.USUARIO = p.USUARIO OR (r.PUBLICADA AND NOT r.OCULTA))
+          AND EXISTS (SELECT 1 FROM suscripcion_push s WHERE s.USUARIO = p.USUARIO)
+        ORDER BY p.FECHA, p.ID
+    </select>
+
+    <update id="reclamar">
+        UPDATE usuario_receta_planificada SET AVISADA = #{ahora} WHERE ID = #{id} AND AVISADA IS NULL
+    </update>
+</mapper>

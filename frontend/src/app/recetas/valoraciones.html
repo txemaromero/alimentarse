@@ -1,0 +1,159 @@
+<section class="mt-5" aria-labelledby="titulo-valoraciones">
+  <h2 class="h4" id="titulo-valoraciones">Valoraciones</h2>
+
+  @if (receta().valoraciones > 0 && receta().nota !== null) {
+    <p class="d-flex flex-wrap align-items-center gap-2 resumen">
+      <app-estrellas
+        [nota]="receta().nota!"
+        prefijo="Nota media: "
+        [sufijo]="', ' + textoValoraciones(receta().valoraciones)"
+      />
+      <span class="fw-semibold" aria-hidden="true">{{ receta().nota | number: '1.1-1' }}</span>
+      <span class="text-body-secondary" aria-hidden="true"
+        >· {{ textoValoraciones(receta().valoraciones) }}</span
+      >
+    </p>
+  } @else {
+    <p class="text-body-secondary">Aún no tiene valoraciones.</p>
+  }
+
+  @if (puedeValorar()) {
+    <form
+      id="tu-valoracion"
+      class="card card-body mb-4"
+      tabindex="-1"
+      aria-labelledby="titulo-tu-valoracion"
+      [formGroup]="formulario"
+      (ngSubmit)="guardar()"
+      novalidate
+    >
+      <h3 class="h6 text-uppercase" id="titulo-tu-valoracion">
+        {{ receta().miValoracion ? 'Tu valoración' : 'Valora esta receta' }}
+      </h3>
+      @if (receta().miValoracion?.oculta) {
+        <div class="alert alert-warning small" role="status">
+          La administración ha ocultado tu valoración: no la ven los demás ni cuenta en la media.
+        </div>
+      }
+      @if (error()) {
+        <div class="alert alert-danger small" role="alert">{{ error() }}</div>
+      }
+
+      <fieldset class="mb-3" aria-describedby="valoracion-nota-error">
+        <legend class="form-label fs-6 mb-1">Nota</legend>
+        <div class="selector-estrellas" [class.is-invalid]="esInvalido(nota)">
+          @for (n of notas; track n) {
+            <input
+              class="visually-hidden"
+              type="radio"
+              name="nota"
+              [id]="'valoracion-nota-' + n"
+              [value]="n"
+              formControlName="nota"
+            />
+            <label [for]="'valoracion-nota-' + n">
+              <fa-icon [icon]="n <= notaElegida() ? iconos.llena : iconos.vacia" />
+              <span class="visually-hidden">{{ n }} {{ n === 1 ? 'estrella' : 'estrellas' }}</span>
+            </label>
+          }
+        </div>
+        <app-error-campo [control]="nota" idMensaje="valoracion-nota-error" />
+      </fieldset>
+
+      <div class="mb-3">
+        <label for="valoracion-comentario" class="form-label"
+          >Comentario <span class="text-body-secondary">(opcional)</span></label
+        >
+        <textarea
+          id="valoracion-comentario"
+          class="form-control"
+          rows="3"
+          formControlName="comentario"
+          [attr.maxlength]="maximoComentario"
+          [class.is-invalid]="esInvalido(comentario)"
+          aria-describedby="valoracion-comentario-ayuda valoracion-comentario-error"
+        ></textarea>
+        <div id="valoracion-comentario-ayuda" class="form-text">
+          {{ caracteres() }} de {{ maximoComentario }} caracteres. Se publica con tu nombre de
+          usuario.
+        </div>
+        <app-error-campo [control]="comentario" idMensaje="valoracion-comentario-error" />
+      </div>
+
+      <div class="d-flex flex-wrap gap-2">
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [appRequiereConexion]="formulario.invalid || enviando()"
+        >
+          @if (enviando()) {
+            <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+          }
+          Guardar valoración
+        </button>
+        @if (receta().miValoracion) {
+          <button
+            type="button"
+            class="btn btn-outline-danger"
+            [appRequiereConexion]="enviando()"
+            (click)="borrar()"
+          >
+            Borrar mi valoración
+          </button>
+        }
+      </div>
+    </form>
+  }
+
+  @if (fallo()) {
+    <div class="alert alert-danger d-flex align-items-center gap-3" role="alert">
+      <span class="flex-grow-1">No se han podido cargar las valoraciones.</span>
+      <button type="button" class="btn btn-sm btn-outline-danger" (click)="reintentar()">
+        Reintentar
+      </button>
+    </div>
+  } @else if (lista().length > 0) {
+    <ul class="list-unstyled mb-0 lista" [attr.aria-busy]="cargando()">
+      @for (v of lista(); track v.id) {
+        <li class="valoracion py-3" [class.oculta]="v.oculta">
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <strong>{{ v.usuario }}</strong>
+            <app-estrellas [nota]="v.nota" />
+            <span class="small text-body-secondary">{{
+              v.fecha | date: "d 'de' MMMM 'de' yyyy"
+            }}</span>
+            @if (v.oculta) {
+              <span class="badge rounded-pill text-bg-danger">Oculta por la administración</span>
+            }
+            @if (esAdmin()) {
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-secondary ms-auto"
+                [appRequiereConexion]="ocupada() !== null"
+                [attr.aria-label]="
+                  (v.oculta ? 'Mostrar' : 'Ocultar') + ' la valoración de ' + v.usuario
+                "
+                (click)="alternarOculta(v)"
+              >
+                {{ v.oculta ? 'Mostrar' : 'Ocultar' }}
+              </button>
+            }
+          </div>
+          @if (v.comentario) {
+            <p class="mb-0 mt-1 comentario">{{ v.comentario }}</p>
+          }
+        </li>
+      }
+    </ul>
+    @if (lista().length < total()) {
+      <button
+        type="button"
+        class="btn btn-sm btn-outline-secondary mt-2"
+        [disabled]="cargando()"
+        (click)="verMas()"
+      >
+        Ver más valoraciones
+      </button>
+    }
+  }
+</section>

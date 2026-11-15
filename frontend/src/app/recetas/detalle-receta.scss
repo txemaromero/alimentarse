@@ -1,0 +1,65 @@
+// En móvil: cabecera, datos (ingredientes…) e instrucciones. En escritorio, los datos van en una columna lateral.
+.detalle {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'cabecera'
+    'lateral'
+    'cuerpo';
+
+  @media (min-width: 992px) {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      'cabecera lateral'
+      'cuerpo lateral';
+    align-items: start;
+  }
+}
+
+.cabecera {
+  grid-area: cabecera;
+}
+
+.cuerpo {
+  grid-area: cuerpo;
+}
+
+.lateral {
+  grid-area: lateral;
+}
+
+.titulo {
+  color: var(--toca-marron-oscuro);
+  font-weight: 700;
+}
+
+.ingredientes li {
+  padding: 0.35rem 0;
+  border-bottom: 1px solid rgb(0 0 0 / 6%);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.boton-me-gusta {
+  color: #6b6b6b;
+
+  &.activo {
+    color: #c62828;
+  }
+}
+
+// Al imprimir o guardar en PDF (D-076): una sola columna, con los ingredientes antes de las instrucciones, como en el
+// móvil, y la foto más pequeña
+@media print {
+  .detalle {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'cabecera'
+      'lateral'
+      'cuerpo';
+  }
+}

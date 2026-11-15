@@ -1,0 +1,117 @@
+<section aria-labelledby="titulo-nutricion">
+  <h2 id="titulo-nutricion" class="h5 text-uppercase mb-1">Nutrientes en los últimos 7 días</h2>
+
+  @if (cargando()) {
+    <div class="py-3">
+      <span class="spinner-border spinner-border-sm text-secondary" role="status">
+        <span class="visually-hidden">Calculando los nutrientes…</span>
+      </span>
+    </div>
+  } @else if (fallo()) {
+    <div class="alert alert-danger d-flex align-items-center gap-3" role="alert">
+      <span class="flex-grow-1">No se han podido calcular los nutrientes.</span>
+      <button type="button" class="btn btn-sm btn-outline-danger" (click)="cargar()">
+        Reintentar
+      </button>
+    </div>
+  } @else if (datos(); as n) {
+    @if (n.mediaDiaria && n.total && n.referencia) {
+      <p class="text-body-secondary small mb-3 resumen">
+        Estimación con lo que has registrado: {{ n.estimados }} de {{ consumos(n.consumos) }}
+        tienen datos, y cada consumo cuenta como una ración. La media reparte el total entre los 7
+        días, aunque algún día no registraras nada.
+      </p>
+      <table class="table table-sm small tabla-semana mb-2">
+        <caption class="visually-hidden">
+          Nutrientes estimados de lo que has comido en los últimos 7 días
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Nutriente</th>
+            <th scope="col" class="text-end">Al día</th>
+            <th scope="col" class="text-end">
+              <abbr title="Porcentaje de la ingesta de referencia">% IR</abbr>
+            </th>
+            <th scope="col" class="text-end">En 7 días</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Energía</th>
+            <td class="text-end">
+              {{ n.mediaDiaria.energiaKcal | number: '1.0-0' }} kcal
+              <span class="d-block text-body-secondary"
+                >{{ n.mediaDiaria.energiaKj | number: '1.0-0' }} kJ</span
+              >
+            </td>
+            <td class="text-end">{{ n.referencia.energia }}&nbsp;%</td>
+            <td class="text-end">
+              {{ n.total.energiaKcal | number: '1.0-0' }} kcal
+              <span class="d-block text-body-secondary"
+                >{{ n.total.energiaKj | number: '1.0-0' }} kJ</span
+              >
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">Grasas</th>
+            <td class="text-end">{{ n.mediaDiaria.grasas | number: '1.0-1' }} g</td>
+            <td class="text-end">{{ n.referencia.grasas }}&nbsp;%</td>
+            <td class="text-end">{{ n.total.grasas | number: '1.0-1' }} g</td>
+          </tr>
+          <tr>
+            <th scope="row" class="ps-3 fw-normal">de las cuales saturadas</th>
+            <td class="text-end">{{ n.mediaDiaria.grasasSaturadas | number: '1.0-1' }} g</td>
+            <td class="text-end">{{ n.referencia.grasasSaturadas }}&nbsp;%</td>
+            <td class="text-end">{{ n.total.grasasSaturadas | number: '1.0-1' }} g</td>
+          </tr>
+          <tr>
+            <th scope="row">Hidratos de carbono</th>
+            <td class="text-end">{{ n.mediaDiaria.hidratos | number: '1.0-1' }} g</td>
+            <td class="text-end">{{ n.referencia.hidratos }}&nbsp;%</td>
+            <td class="text-end">{{ n.total.hidratos | number: '1.0-1' }} g</td>
+          </tr>
+          <tr>
+            <th scope="row">Fibra</th>
+            <td class="text-end">{{ n.mediaDiaria.fibra | number: '1.0-1' }} g</td>
+            <td class="text-end">
+              <span aria-hidden="true">–</span><span class="visually-hidden">sin referencia</span>
+            </td>
+            <td class="text-end">{{ n.total.fibra | number: '1.0-1' }} g</td>
+          </tr>
+          <tr>
+            <th scope="row">Proteínas</th>
+            <td class="text-end">{{ n.mediaDiaria.proteinas | number: '1.0-1' }} g</td>
+            <td class="text-end">{{ n.referencia.proteinas }}&nbsp;%</td>
+            <td class="text-end">{{ n.total.proteinas | number: '1.0-1' }} g</td>
+          </tr>
+          <tr>
+            <th scope="row">Sal</th>
+            <td class="text-end">{{ n.mediaDiaria.sal | number: '1.0-2' }} g</td>
+            <td class="text-end">{{ n.referencia.sal }}&nbsp;%</td>
+            <td class="text-end">{{ n.total.sal | number: '1.0-2' }} g</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="small text-body-secondary mb-1">
+        «Al día» es la media de los 7 días. % IR: porcentaje de la ingesta de referencia de un
+        adulto medio (2.000 kcal) que usan las etiquetas de los alimentos en la Unión Europea; las
+        necesidades de cada persona son distintas. Es una estimación orientativa, no un consejo
+        médico.
+      </p>
+      <p class="small text-body-secondary mb-0">
+        Fuente:
+        <a href="https://www.bedca.net/" target="_blank" rel="noopener"
+          >{{ fuente }}<span class="visually-hidden"> (se abre en otra pestaña)</span></a
+        >.
+      </p>
+    } @else if (n.consumos === 0) {
+      <p class="text-body-secondary sin-datos">
+        No has consumido ninguna receta en los últimos 7 días.
+      </p>
+    } @else {
+      <p class="text-body-secondary sin-datos">
+        Ninguna de las recetas que has comido en los últimos 7 días tiene información nutricional.
+      </p>
+    }
+  }
+</section>

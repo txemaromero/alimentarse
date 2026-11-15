@@ -1,0 +1,145 @@
+# Actualizaciones automáticas de dependencias (D-072). Dependabot abre un pull request por grupo cada lunes,
+# y la CI (ci.yml) lo comprueba: backend, frontend, e2e y Docker. Se espera una semana desde que sale una versión
+# (cooldown) para no adoptar paquetes publicados por error o comprometidos que se retiran en pocos días.
+version: 2
+
+updates:
+  # ---- Frontend (Angular) ----
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: Europe/Madrid
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: 'chore(deps)'
+    groups:
+      # Los paquetes de Angular exigen la misma versión exacta entre ellos: tienen que subir juntos (D-057)
+      angular:
+        patterns:
+          - '@angular/*'
+          - '@angular-devkit/*'
+          - '@schematics/angular'
+          - 'angular-eslint'
+          - '@angular-eslint/*'
+      # Las piezas de TipTap van fijadas a la misma versión
+      tiptap:
+        patterns:
+          - '@tiptap/*'
+      font-awesome:
+        patterns:
+          - '@fortawesome/*'
+      # Vitest y su cobertura tienen que ir en la misma versión, también al cambiar de versión mayor
+      vitest:
+        patterns:
+          - 'vitest'
+          - '@vitest/*'
+      eslint:
+        patterns:
+          - 'eslint'
+          - '@eslint/*'
+          - 'typescript-eslint'
+          - 'eslint-config-prettier'
+      desarrollo:
+        dependency-type: development
+        update-types: [minor, patch]
+      produccion:
+        dependency-type: production
+        update-types: [minor, patch]
+    ignore:
+      # Una versión mayor de Angular se sube con «ng update», que aplica las migraciones del código
+      - dependency-name: '@angular/*'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@angular-devkit/*'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'angular-eslint'
+        update-types: ['version-update:semver-major']
+      # Cada versión mayor de ng-bootstrap exige la siguiente de Angular
+      - dependency-name: '@ng-bootstrap/ng-bootstrap'
+        update-types: ['version-update:semver-major']
+      # Angular 22 solo admite TypeScript 6.0.x: sube junto con Angular
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major', 'version-update:semver-minor']
+
+  # ---- Backend (Spring Boot) ----
+  - package-ecosystem: maven
+    directory: /backend
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: Europe/Madrid
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: 'chore(deps)'
+    groups:
+      spring-boot:
+        patterns:
+          - 'org.springframework.boot:*'
+      maven:
+        update-types: [minor, patch]
+    ignore:
+      # Una versión mayor de Spring Boot cambia starters y dependencias gestionadas (D-001): se sube a mano
+      - dependency-name: 'org.springframework.boot:*'
+        update-types: ['version-update:semver-major']
+
+  # ---- Acciones de la CI ----
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: Europe/Madrid
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: 'ci(deps)'
+    groups:
+      acciones:
+        patterns: ['*']
+
+  # ---- Imágenes base del Dockerfile ----
+  # Van fijadas por digest (D-090; antes, por etiqueta, y los parches llegaban solos en cada build, D-072). Dependabot
+  # propone el digest nuevo de la misma etiqueta (node:24-alpine, eclipse-temurin:25-jdk y -jre), que trae los
+  # parches. Una versión mayor de Node o de Java se sube a mano, con el resto del proyecto.
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: Europe/Madrid
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: 'chore(deps)'
+    groups:
+      imagenes:
+        patterns: ['*']
+    ignore:
+      - dependency-name: 'node'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'eclipse-temurin'
+        update-types: ['version-update:semver-major']
+
+  # ---- Servicios de docker-compose.yml, fijados por digest (D-090) ----
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: Europe/Madrid
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: 'chore(deps)'
+    ignore:
+      # MySQL 8.4 es la versión LTS; las 9.x son «innovation»
+      - dependency-name: 'mysql'
+        update-types: ['version-update:semver-major']

@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="es.alimentarse.admin.CatalogoAdminMapper">
+
+    <resultMap id="grupo" type="es.alimentarse.admin.GrupoAdminDto">
+        <constructor>
+            <idArg column="ID" javaType="_int" name="id"/>
+            <arg column="NOMBRE" javaType="string" name="nombre"/>
+            <arg column="RACIONES_SEMANA" javaType="java.lang.Integer" name="racionesSemana"/>
+            <arg column="BASICO" javaType="_boolean" name="basico"/>
+            <arg column="INGREDIENTES" javaType="_long" name="ingredientes"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="columnasGrupo">
+        SELECT g.ID, g.NOMBRE, g.RACIONES_SEMANA, g.BASICO,
+               (SELECT COUNT(*) FROM ingredientes i WHERE i.GRUPO = g.ID) AS INGREDIENTES
+        FROM grupo_ingrediente g
+    </sql>
+
+    <select id="grupos" resultMap="grupo">
+        <include refid="columnasGrupo"/>
+        ORDER BY g.NOMBRE, g.ID
+    </select>
+
+    <select id="grupoPorId" resultMap="grupo">
+        <include refid="columnasGrupo"/>
+        WHERE g.ID = #{id}
+    </select>
+
+    <!-- La colación ignora mayúsculas y acentos, como el UNIQUE -->
+    <select id="existeNombreGrupo" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1 FROM grupo_ingrediente WHERE NOMBRE = #{nombre}
+            <if test="exceptoId != null">AND ID &lt;&gt; #{exceptoId}</if>
+        )
+    </select>
+
+    <insert id="insertarGrupo">
+        INSERT INTO grupo_ingrediente (NOMBRE, RACIONES_SEMANA, BASICO)
+        VALUES (#{nombre}, #{racionesSemana}, #{basico})
+    </insert>
+
+    <select id="ultimoIdInsertado" resultType="_int">
+        SELECT LAST_INSERT_ID()
+    </select>
+
+    <update id="actualizarGrupo">
+        UPDATE grupo_ingrediente
+        SET NOMBRE = #{nombre}, RACIONES_SEMANA = #{racionesSemana}, BASICO = #{basico}
+        WHERE ID = #{id}
+    </update>
+
+    <select id="bloquearGrupo" resultType="_int">
+        SELECT ID FROM grupo_ingrediente WHERE ID = #{id} FOR UPDATE
+    </select>
+
+    <select id="contarIngredientesDeGrupo" resultType="_long">
+        SELECT COUNT(*) FROM ingredientes WHERE GRUPO = #{id}
+    </select>
+
+    <delete id="borrarGrupo">
+        DELETE FROM grupo_ingrediente WHERE ID = #{id}
+    </delete>
+
+    <select id="bloquearIngredientes" resultType="_int">
+        SELECT ID FROM ingredientes WHERE ID IN (#{a}, #{b}) ORDER BY ID FOR UPDATE
+    </select>
+
+    <select id="contarRecetasConIngrediente" resultType="_int">
+        SELECT COUNT(*) FROM ingrediente_receta WHERE INGREDIENTE = #{ingrediente}
+    </select>
+
+    <!-- Hasta 100 caracteres, como la columna -->
+    <update id="sumarCantidades">
+        UPDATE ingrediente_receta d
+        JOIN ingrediente_receta o ON o.RECETA = d.RECETA AND o.INGREDIENTE = #{origen}
+        SET d.CANTIDAD = LEFT(CONCAT(d.CANTIDAD, ' + ', o.CANTIDAD), 100)
+        WHERE d.INGREDIENTE = #{destino}
+    </update>
+
+    <delete id="borrarLineasRepetidas">
+        DELETE o FROM ingrediente_receta o
+        JOIN ingrediente_receta d ON d.RECETA = o.RECETA AND d.INGREDIENTE = #{destino}
+        WHERE o.INGREDIENTE = #{origen}
+    </delete>
+
+    <update id="moverLineas">
+        UPDATE ingrediente_receta SET INGREDIENTE = #{destino} WHERE INGREDIENTE = #{origen}
+    </update>
+
+    <delete id="borrarIngrediente">
+        DELETE FROM ingredientes WHERE ID = #{id}
+    </delete>
+
+    <insert id="heredarAlimento">
+        INSERT INTO ingrediente_alimento (INGREDIENTE, ALIMENTO)
+        SELECT #{destino}, o.ALIMENTO FROM ingrediente_alimento o
+        WHERE o.INGREDIENTE = #{origen}
+          AND NOT EXISTS (SELECT 1 FROM ingrediente_alimento d WHERE d.INGREDIENTE = #{destino})
+    </insert>
+
+    <insert id="heredarPiezas">
+        INSERT INTO peso_pieza_ingrediente (INGREDIENTE, PIEZA, GRAMOS)
+        SELECT #{destino}, o.PIEZA, o.GRAMOS FROM peso_pieza_ingrediente o
+        WHERE o.INGREDIENTE = #{origen}
+          AND NOT EXISTS (
+              SELECT 1 FROM peso_pieza_ingrediente d WHERE d.INGREDIENTE = #{destino} AND d.PIEZA = o.PIEZA)
+    </insert>
+
+    <resultMap id="alimentoBedca" type="es.alimentarse.admin.AlimentoBedca">
+        <constructor>
+            <idArg column="ID" javaType="_int" name="id"/>
+            <arg column="NOMBRE" javaType="string" name="nombre"/>
+            <arg column="ENERGIA_KJ" javaType="java.math.BigDecimal" name="energiaKj"/>
+            <arg column="GRASAS" javaType="java.math.BigDecimal" name="grasas"/>
+            <arg column="GRASAS_SATURADAS" javaType="java.math.BigDecimal" name="grasasSaturadas"/>
+            <arg column="HIDRATOS" javaType="java.math.BigDecimal" name="hidratos"/>
+            <arg column="FIBRA" javaType="java.math.BigDecimal" name="fibra"/>
+            <arg column="PROTEINAS" javaType="java.math.BigDecimal" name="proteinas"/>
+            <arg column="SODIO_MG" javaType="java.math.BigDecimal" name="sodioMg"/>
+        </constructor>
+    </resultMap>
+
+    <!-- La colación utf8mb4_0900_ai_ci hace que LIKE ignore mayúsculas y acentos -->
+    <select id="buscarAlimentos" resultMap="alimentoBedca">
+        SELECT ID, NOMBRE, ENERGIA_KJ, GRASAS, GRASAS_SATURADAS, HIDRATOS, FIBRA, PROTEINAS, SODIO_MG
+        FROM alimento_bedca
+        <where>
+            <foreach item="palabra" collection="palabras" separator=" AND ">NOMBRE LIKE #{palabra} ESCAPE '\\'</foreach>
+        </where>
+        ORDER BY (NOMBRE LIKE #{prefijo} ESCAPE '\\') DESC, NOMBRE, ID
+        LIMIT #{limite}
+    </select>
+
+    <select id="existeAlimento" resultType="boolean">
+        SELECT EXISTS (SELECT 1 FROM alimento_bedca WHERE ID = #{id})
+    </select>
+
+    <insert id="asignarAlimento">
+        INSERT INTO ingrediente_alimento (INGREDIENTE, ALIMENTO) VALUES (#{ingrediente}, #{alimento}) AS nuevo
+        ON DUPLICATE KEY UPDATE ALIMENTO = nuevo.ALIMENTO
+    </insert>
+
+    <delete id="quitarAlimento">
+        DELETE FROM ingrediente_alimento WHERE INGREDIENTE = #{ingrediente}
+    </delete>
+
+    <select id="alimentoDe" resultMap="alimentoBedca">
+        SELECT a.ID, a.NOMBRE, a.ENERGIA_KJ, a.GRASAS, a.GRASAS_SATURADAS, a.HIDRATOS, a.FIBRA, a.PROTEINAS, a.SODIO_MG
+        FROM ingrediente_alimento ia
+        JOIN alimento_bedca a ON a.ID = ia.ALIMENTO
+        WHERE ia.INGREDIENTE = #{ingrediente}
+    </select>
+
+    <resultMap id="pieza" type="es.alimentarse.admin.PiezaDto">
+        <constructor>
+            <idArg column="PIEZA" javaType="string" name="pieza"/>
+            <arg column="GRAMOS" javaType="java.math.BigDecimal" name="gramos"/>
+        </constructor>
+    </resultMap>
+
+    <select id="piezasDe" resultMap="pieza">
+        SELECT PIEZA, GRAMOS FROM peso_pieza_ingrediente WHERE INGREDIENTE = #{ingrediente} ORDER BY PIEZA
+    </select>
+
+    <delete id="borrarPiezas">
+        DELETE FROM peso_pieza_ingrediente WHERE INGREDIENTE = #{ingrediente}
+    </delete>
+
+    <insert id="insertarPiezas">
+        INSERT INTO peso_pieza_ingrediente (INGREDIENTE, PIEZA, GRAMOS) VALUES
+        <foreach item="pieza" collection="piezas" separator=",">(#{ingrediente}, #{pieza.pieza}, #{pieza.gramos})</foreach>
+    </insert>
+</mapper>

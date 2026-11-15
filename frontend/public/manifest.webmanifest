@@ -1,0 +1,35 @@
+{
+  "name": "Toca — ¿Qué toca hoy?",
+  "short_name": "Toca",
+  "description": "Comparte recetas, registra lo que comes y descubre qué cocinar hoy para mantener una dieta equilibrada.",
+  "lang": "es",
+  "dir": "ltr",
+  "display": "standalone",
+  "scope": "./",
+  "start_url": "./",
+  "theme_color": "#bfa48a",
+  "background_color": "#f2f2f2",
+  "categories": ["food", "health", "lifestyle"],
+  "icons": [
+    { "src": "icons/icono-72.png", "sizes": "72x72", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icono-96.png", "sizes": "96x96", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icono-128.png", "sizes": "128x128", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icono-144.png", "sizes": "144x144", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icono-152.png", "sizes": "152x152", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icono-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icono-384.png", "sizes": "384x384", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    {
+      "src": "icons/icono-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icono-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

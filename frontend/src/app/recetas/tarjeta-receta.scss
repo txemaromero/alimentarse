@@ -1,0 +1,77 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.tarjeta-receta {
+  overflow: hidden;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgb(0 0 0 / 12%);
+  }
+}
+
+.tarjeta-receta.eliminada {
+  background-color: var(--bs-tertiary-bg);
+
+  &:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+.marco-imagen {
+  display: block;
+  aspect-ratio: 4 / 3;
+  background-color: var(--toca-beige-claro);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.sin-imagen {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: var(--toca-beige);
+}
+
+.titulo {
+  color: inherit;
+  text-decoration: none;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline;
+  }
+}
+
+.datos {
+  color: #4a4a4a;
+}
+
+.boton-me-gusta {
+  color: #6b6b6b;
+  text-decoration: none;
+
+  &.activo {
+    color: #c62828;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tarjeta-receta {
+    transition: none;
+
+    &:hover {
+      transform: none;
+    }
+  }
+}

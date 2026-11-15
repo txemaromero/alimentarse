@@ -1,0 +1,22 @@
+.vista-previa {
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background-color: var(--toca-beige-claro);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.sin-imagen {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: var(--toca-beige);
+}
+
+legend {
+  font-weight: 400;
+}

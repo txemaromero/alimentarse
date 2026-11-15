@@ -1,0 +1,198 @@
+<section class="container pb-5">
+  <h1 class="titulo-seccion">Gestión de usuarios</h1>
+
+  @if (sinPermiso()) {
+    <div class="alert alert-warning" role="alert">
+      Ya no tienes permisos de administrador. Cierra la sesión y vuelve a entrar para actualizar tu
+      cuenta.
+    </div>
+  }
+
+  <form
+    class="card card-body mb-4"
+    role="search"
+    aria-label="Buscar usuarios"
+    [formGroup]="buscador"
+    (ngSubmit)="buscar()"
+  >
+    <label for="usuarios-q" class="form-label">Buscar por usuario, nombre, apellidos o email</label>
+    <div class="d-flex flex-column flex-sm-row gap-2">
+      <input
+        id="usuarios-q"
+        type="search"
+        class="form-control"
+        formControlName="q"
+        maxlength="100"
+        placeholder="Contiene…"
+        autocomplete="off"
+      />
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-danger flex-fill text-nowrap" (click)="restablecer()">
+          <fa-icon [icon]="iconos.restablecer" class="me-1" />Restablecer
+        </button>
+        <button type="submit" class="btn btn-primary flex-fill text-nowrap">
+          <fa-icon [icon]="iconos.buscar" class="me-1" />Buscar
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <section [attr.aria-busy]="listado.cargando()" aria-labelledby="usuarios-resultados">
+    <h2 id="usuarios-resultados" class="visually-hidden">Usuarios</h2>
+    @if (listado.fallo()) {
+      <div class="alert alert-danger d-flex align-items-center gap-3" role="alert">
+        <span class="flex-grow-1">
+          No se han podido cargar los usuarios. Si ya no eres administrador, cierra la sesión y
+          vuelve a entrar.
+        </span>
+        <button type="button" class="btn btn-sm btn-outline-danger" (click)="listado.recargar()">
+          Reintentar
+        </button>
+      </div>
+    } @else if (listado.resultado(); as pagina) {
+      @if (pagina.contenido.length === 0) {
+        <div class="text-center py-5">
+          <fa-icon [icon]="iconos.vacio" size="3x" class="text-secondary mb-3" />
+          <p class="lead">No hay usuarios que coincidan con la búsqueda.</p>
+        </div>
+      } @else {
+        <!-- Escritorio y tableta: tabla. Móvil: tarjetas, para no estrechar las columnas -->
+        <div class="card d-none d-md-block">
+          <div class="table-responsive">
+            <table
+              class="table table-hover align-middle mb-0"
+              [class.opacity-50]="listado.cargando()"
+            >
+              <caption class="visually-hidden">
+                Usuarios registrados, si son administradores y si están bloqueados
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">ID</th>
+                  <th scope="col">Nombre</th>
+                  <th scope="col">Email</th>
+                  <th scope="col" class="text-center">Administrador</th>
+                  <th scope="col" class="text-center">Bloqueado</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (usuario of pagina.contenido; track usuario.id) {
+                  <tr>
+                    <td class="fw-semibold">
+                      {{ usuario.id }}
+                      @if (esYo(usuario)) {
+                        <span class="badge rounded-pill text-bg-secondary ms-1">Tú</span>
+                      }
+                      @if (usuario.bloqueado) {
+                        <span class="badge rounded-pill text-bg-danger ms-1">Bloqueado</span>
+                      }
+                    </td>
+                    <td>{{ nombreCompleto(usuario) }}</td>
+                    <td class="text-break">{{ usuario.email }}</td>
+                    <td class="text-center">
+                      <ng-container
+                        [ngTemplateOutlet]="interruptor"
+                        [ngTemplateOutletContext]="{ $implicit: usuario }"
+                      />
+                    </td>
+                    <td class="text-center">
+                      <ng-container
+                        [ngTemplateOutlet]="bloqueo"
+                        [ngTemplateOutletContext]="{ $implicit: usuario }"
+                      />
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <ul class="list-unstyled d-grid gap-2 d-md-none" [class.opacity-50]="listado.cargando()">
+          @for (usuario of pagina.contenido; track usuario.id) {
+            <li class="card card-body d-flex flex-row align-items-center gap-3">
+              <div class="flex-grow-1 min-w-0">
+                <strong>{{ usuario.id }}</strong>
+                @if (esYo(usuario)) {
+                  <span class="badge rounded-pill text-bg-secondary ms-1">Tú</span>
+                }
+                @if (usuario.bloqueado) {
+                  <span class="badge rounded-pill text-bg-danger ms-1">Bloqueado</span>
+                }
+                <span class="d-block">{{ nombreCompleto(usuario) }}</span>
+                <span class="d-block small text-body-secondary text-break">{{
+                  usuario.email
+                }}</span>
+              </div>
+              <div class="text-center small">
+                <ng-container
+                  [ngTemplateOutlet]="interruptor"
+                  [ngTemplateOutletContext]="{ $implicit: usuario }"
+                />
+                <span class="d-block mt-1" aria-hidden="true">Admin.</span>
+              </div>
+              <div class="text-center small">
+                <ng-container
+                  [ngTemplateOutlet]="bloqueo"
+                  [ngTemplateOutletContext]="{ $implicit: usuario }"
+                />
+                <span class="d-block mt-1" aria-hidden="true">Bloq.</span>
+              </div>
+            </li>
+          }
+        </ul>
+        <app-paginacion
+          [datos]="pagina"
+          etiqueta="Páginas de usuarios"
+          (pagina)="listado.cargar($event)"
+        />
+        <p class="small text-body-secondary mt-3 mb-0">
+          Al cambiar el rol, esa persona tendrá que volver a iniciar sesión. El bloqueo se aplica al
+          momento: ya no puede entrar y su sesión abierta se cierra.
+        </p>
+      }
+    } @else if (listado.cargando()) {
+      <div class="text-center py-5">
+        <span class="spinner-border text-secondary" role="status">
+          <span class="visually-hidden">Cargando usuarios…</span>
+        </span>
+      </div>
+    }
+  </section>
+</section>
+
+<ng-template #interruptor let-usuario>
+  <button
+    type="button"
+    class="btn btn-sm btn-outline-secondary interruptor"
+    [class.activo]="usuario.admin"
+    [attr.aria-pressed]="usuario.admin"
+    [attr.aria-label]="'Administrador: ' + usuario.id"
+    [title]="
+      motivoSinCambioAdmin(usuario) ??
+      (usuario.admin ? 'Quitar el rol de administrador' : 'Hacer administrador')
+    "
+    [appRequiereConexion]="motivoSinCambioAdmin(usuario) !== null || cambiando() !== null"
+    (click)="alternarAdmin(usuario)"
+  >
+    @if (cambiando() === usuario.id) {
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+    } @else {
+      <fa-icon [icon]="iconos.admin" />
+    }
+  </button>
+</ng-template>
+
+<ng-template #bloqueo let-usuario>
+  <button
+    type="button"
+    class="btn btn-sm btn-outline-secondary interruptor bloqueo"
+    [class.activo]="usuario.bloqueado"
+    [attr.aria-pressed]="usuario.bloqueado"
+    [attr.aria-label]="'Bloqueado: ' + usuario.id"
+    [title]="motivoSinBloqueo(usuario) ?? (usuario.bloqueado ? 'Desbloquear' : 'Bloquear')"
+    [appRequiereConexion]="motivoSinBloqueo(usuario) !== null || cambiando() !== null"
+    (click)="alternarBloqueo(usuario)"
+  >
+    <fa-icon [icon]="iconos.bloqueo" />
+  </button>
+</ng-template>

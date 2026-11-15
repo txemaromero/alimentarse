@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="es.alimentarse.admin.AdminMapper">
+
+    <resultMap id="usuarioAdmin" type="es.alimentarse.admin.UsuarioAdminDto">
+        <constructor>
+            <idArg column="ID" javaType="string" name="id"/>
+            <arg column="NOMBRE" javaType="string" name="nombre"/>
+            <arg column="APELLIDO1" javaType="string" name="apellido1"/>
+            <arg column="APELLIDO2" javaType="string" name="apellido2"/>
+            <arg column="EMAIL" javaType="string" name="email"/>
+            <arg column="ADMIN" javaType="_boolean" name="admin"/>
+            <arg column="BLOQUEADO" javaType="_boolean" name="bloqueado"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="columnas">
+        SELECT u.ID, u.NOMBRE, u.APELLIDO1, u.APELLIDO2, u.EMAIL, u.BLOQUEADO,
+               EXISTS (SELECT 1 FROM usuario_rol ur JOIN roles r ON r.ID = ur.ROL
+                       WHERE ur.USUARIO = u.ID AND r.NOMBRE = 'ADMIN') AS ADMIN
+        FROM usuarios u
+    </sql>
+
+    <!-- La colación ignora mayúsculas y acentos; el patrón llega escapado (D-027) -->
+    <sql id="filtro">
+        <where>
+            <if test="patron != null">
+                u.ID LIKE #{patron} ESCAPE '\\'
+                OR u.NOMBRE LIKE #{patron} ESCAPE '\\'
+                OR u.APELLIDO1 LIKE #{patron} ESCAPE '\\'
+                OR u.APELLIDO2 LIKE #{patron} ESCAPE '\\'
+                OR u.EMAIL LIKE #{patron} ESCAPE '\\'
+            </if>
+        </where>
+    </sql>
+
+    <select id="buscar" resultMap="usuarioAdmin">
+        <include refid="columnas"/>
+        <include refid="filtro"/>
+        ORDER BY u.ID
+        LIMIT #{limite} OFFSET #{desplazamiento}
+    </select>
+
+    <select id="contar" resultType="_long">
+        SELECT COUNT(*) FROM usuarios u
+        <include refid="filtro"/>
+    </select>
+
+    <select id="buscarPorId" resultMap="usuarioAdmin">
+        <include refid="columnas"/>
+        WHERE u.ID = #{id}
+    </select>
+
+    <select id="esAdmin" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1 FROM usuario_rol ur JOIN roles r ON r.ID = ur.ROL
+            WHERE ur.USUARIO = #{id} AND r.NOMBRE = 'ADMIN'
+        )
+    </select>
+
+    <select id="contarAdmins" resultType="_long">
+        SELECT COUNT(*) FROM usuario_rol ur JOIN roles r ON r.ID = ur.ROL WHERE r.NOMBRE = 'ADMIN'
+    </select>
+
+    <select id="bloquearRolAdmin" resultType="_int">
+        SELECT ID FROM roles WHERE NOMBRE = 'ADMIN' FOR UPDATE
+    </select>
+</mapper>

@@ -1,0 +1,193 @@
+<form [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
+  <div class="modal-header">
+    <h2 class="modal-title h5" id="modal-datos-nutricionales-titulo">
+      Datos nutricionales de «{{ ingrediente.nombre }}»
+    </h2>
+    <button type="button" class="btn-close" aria-label="Cerrar" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    @if (cargando()) {
+      <div class="text-center py-3">
+        <span class="spinner-border text-secondary" role="status">
+          <span class="visually-hidden">Cargando los datos nutricionales…</span>
+        </span>
+      </div>
+    } @else if (fallo()) {
+      <div class="alert alert-danger d-flex align-items-center gap-3 mb-0" role="alert">
+        <span class="flex-grow-1">No se han podido cargar los datos nutricionales.</span>
+        <button type="button" class="btn btn-sm btn-outline-danger" (click)="cargar()">
+          Reintentar
+        </button>
+      </div>
+    } @else {
+      <p>
+        La información nutricional de las recetas usa los valores por 100 g del alimento de BEDCA
+        que elijas (el más parecido, y crudo si lo hay) y, para cantidades como «2 unidades», el
+        peso de cada pieza.
+      </p>
+      @if (error(); as mensaje) {
+        <div class="alert alert-danger" role="alert">{{ mensaje }}</div>
+      }
+
+      <label for="alimento-bedca" class="form-label fw-semibold">Alimento de BEDCA</label>
+      <div class="input-group has-validation">
+        <input
+          id="alimento-bedca"
+          type="text"
+          class="form-control"
+          formControlName="alimento"
+          maxlength="100"
+          autocomplete="off"
+          placeholder="Escribe para buscar…"
+          [ngbTypeahead]="buscar"
+          [inputFormatter]="nombre"
+          [resultTemplate]="sugerencia"
+          [class.is-invalid]="esInvalido(formulario.controls.alimento)"
+          [attr.aria-invalid]="esInvalido(formulario.controls.alimento)"
+          aria-describedby="alimento-bedca-ayuda alimento-bedca-error"
+        />
+        @if (formulario.controls.alimento.value) {
+          <button type="button" class="btn btn-outline-secondary" (click)="quitarAlimento()">
+            <fa-icon [icon]="iconos.quitar" class="me-1" />Quitar
+          </button>
+        }
+      </div>
+      <div id="alimento-bedca-ayuda" class="form-text">
+        Busca por palabras, en cualquier orden: «pollo crudo», «queso curado». Sin alimento, el
+        ingrediente no cuenta en la información nutricional.
+      </div>
+      <app-error-campo [control]="formulario.controls.alimento" idMensaje="alimento-bedca-error" />
+      <ng-template #sugerencia let-alimento="result" let-termino="term">
+        <ngb-highlight [result]="alimento.nombre" [term]="termino" />
+        @if (alimento.energiaKcal !== null) {
+          <span class="small"> · {{ alimento.energiaKcal | number: '1.0-0' }} kcal</span>
+        }
+      </ng-template>
+
+      @if (seleccionado(); as a) {
+        <table class="table table-sm small mt-3 mb-0 composicion">
+          <caption class="caption-top pb-1">
+            Por 100 g de «{{
+              a.nombre
+            }}»
+          </caption>
+          <tbody>
+            <tr>
+              <th scope="row" class="fw-normal">Energía</th>
+              <td class="text-end">
+                @if (a.energiaKj !== null) {
+                  {{ a.energiaKcal | number: '1.0-0' }} kcal ·
+                  {{ a.energiaKj | number: '1.0-1' }} kJ
+                } @else {
+                  sin dato
+                }
+              </td>
+            </tr>
+            @for (fila of filas(a); track fila.nombre) {
+              <tr>
+                <th scope="row" class="fw-normal">{{ fila.nombre }}</th>
+                <td class="text-end">
+                  @if (fila.valor !== null) {
+                    {{ fila.valor | number: '1.0-2' }} {{ fila.unidad }}
+                  } @else {
+                    sin dato
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+
+      <fieldset class="mt-4 piezas" formArrayName="piezas">
+        <legend class="fs-6 fw-semibold mb-1">Peso de las piezas</legend>
+        <p class="form-text mt-0">
+          Para cantidades como «2 unidades», «3 dientes» o «una lata»: una palabra, en singular, y
+          lo que pesa en gramos de parte comestible.
+        </p>
+        @for (fila of piezas.controls; track fila; let i = $index) {
+          <div class="row g-2 align-items-start mb-2 fila-pieza" [formGroupName]="i">
+            <div class="col">
+              <label class="visually-hidden" [for]="'pieza-' + i">Pieza {{ i + 1 }}</label>
+              <input
+                [id]="'pieza-' + i"
+                type="text"
+                class="form-control"
+                formControlName="pieza"
+                placeholder="unidad"
+                [class.is-invalid]="esInvalido(fila.controls.pieza)"
+                [attr.aria-invalid]="esInvalido(fila.controls.pieza)"
+                [attr.aria-describedby]="'pieza-' + i + '-error'"
+              />
+              <app-error-campo
+                [control]="fila.controls.pieza"
+                [idMensaje]="'pieza-' + i + '-error'"
+                mensajePatron="Una sola palabra, sin números"
+              />
+            </div>
+            <div class="col-4">
+              <label class="visually-hidden" [for]="'pieza-' + i + '-gramos'"
+                >Gramos de la pieza {{ i + 1 }}</label
+              >
+              <div class="input-group has-validation">
+                <input
+                  [id]="'pieza-' + i + '-gramos'"
+                  type="number"
+                  class="form-control"
+                  formControlName="gramos"
+                  min="0.1"
+                  max="10000"
+                  step="0.1"
+                  [class.is-invalid]="esInvalido(fila.controls.gramos)"
+                  [attr.aria-invalid]="esInvalido(fila.controls.gramos)"
+                  [attr.aria-describedby]="'pieza-' + i + '-gramos-error'"
+                />
+                <span class="input-group-text" aria-hidden="true">g</span>
+              </div>
+              <app-error-campo
+                [control]="fila.controls.gramos"
+                [idMensaje]="'pieza-' + i + '-gramos-error'"
+              />
+            </div>
+            <div class="col-auto">
+              <button
+                type="button"
+                class="btn btn-outline-danger"
+                [attr.aria-label]="'Quitar la pieza ' + (i + 1)"
+                title="Quitar"
+                (click)="quitarPieza(i)"
+              >
+                <fa-icon [icon]="iconos.borrar" />
+              </button>
+            </div>
+          </div>
+        }
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-secondary"
+          [disabled]="piezas.length >= maximoPiezas"
+          (click)="anadirPieza()"
+        >
+          <fa-icon [icon]="iconos.anadir" class="me-1" />Añadir una pieza
+        </button>
+      </fieldset>
+
+      <p class="small text-body-secondary mt-3 mb-0">Fuente: {{ fuente }}.</p>
+    }
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-secondary" (click)="modal.dismiss()">
+      Cancelar
+    </button>
+    <button
+      type="submit"
+      class="btn btn-primary"
+      [appRequiereConexion]="cargando() || fallo() || formulario.invalid || enviando()"
+    >
+      @if (enviando()) {
+        <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+      }
+      Guardar
+    </button>
+  </div>
+</form>

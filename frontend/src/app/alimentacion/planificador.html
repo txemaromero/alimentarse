@@ -1,0 +1,156 @@
+<section class="container pb-5">
+  <h1 class="titulo-seccion">Planificador</h1>
+  <p class="text-center mb-3">
+    Planea las comidas de la semana y mira cómo quedarían tus raciones antes de cocinar.
+  </p>
+  <p class="text-center mb-4">
+    <a
+      routerLink="/planificador/compra"
+      [queryParams]="semanaVista() ? { semana: semanaVista() } : {}"
+      class="btn btn-outline-primary"
+    >
+      <fa-icon [icon]="iconos.compra" class="me-1" />Lista de la compra
+    </a>
+  </p>
+
+  <div class="d-flex justify-content-between align-items-center gap-2 mb-3">
+    <button
+      type="button"
+      class="btn btn-outline-secondary text-nowrap"
+      [disabled]="semanaVista() === 0"
+      (click)="cambiarSemana(-1)"
+    >
+      <fa-icon [icon]="iconos.anterior" class="me-1" />Anterior
+    </button>
+    <h2 class="h6 m-0 text-center" aria-live="polite">
+      Del {{ dias()[0] | date: 'd MMM' }} al {{ dias()[6] | date: 'd MMM' }}
+    </h2>
+    <button
+      type="button"
+      class="btn btn-outline-secondary text-nowrap"
+      [disabled]="semanaVista() >= semanasMaximas"
+      (click)="cambiarSemana(1)"
+    >
+      Siguiente<fa-icon [icon]="iconos.siguiente" class="ms-1" />
+    </button>
+  </div>
+
+  @if (fallo()) {
+    <div class="alert alert-danger d-flex align-items-center gap-3" role="alert">
+      <span class="flex-grow-1">No se ha podido cargar el planificador.</span>
+      <button type="button" class="btn btn-sm btn-outline-danger" (click)="cargar()">
+        Reintentar
+      </button>
+    </div>
+  } @else if (plan(); as p) {
+    <div
+      class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xxl-4 g-3"
+      [class.opacity-50]="cargando()"
+      [attr.aria-busy]="cargando()"
+    >
+      @for (dia of dias(); track dia.getTime()) {
+        <div class="col">
+          <article class="card h-100">
+            <header class="card-header d-flex align-items-center justify-content-between gap-2">
+              <h3 class="h6 m-0 text-capitalize">{{ dia | date: 'EEEE d MMM' }}</h3>
+              @if (esHoy(dia)) {
+                <span class="badge rounded-pill text-bg-secondary">Hoy</span>
+              }
+            </header>
+            <ul class="list-group list-group-flush">
+              @for (momento of momentos; track momento.clave) {
+                <li class="list-group-item" [id]="idHueco(dia, momento.clave)" tabindex="-1">
+                  <div class="small text-uppercase text-body-secondary momento mb-1">
+                    {{ momento.etiqueta }}
+                  </div>
+                  @if (comidaEn(dia, momento.clave); as comida) {
+                    @if (comida.disponible) {
+                      <a [routerLink]="['/recetas', comida.receta.id]" class="fw-semibold">{{
+                        comida.receta.titulo
+                      }}</a>
+                    } @else {
+                      <span class="fw-semibold">{{ comida.receta.titulo }}</span>
+                      <span class="d-block small text-body-secondary">
+                        Esta receta ya no está disponible.
+                      </span>
+                    }
+                    @if (comida.excesos.length > 0) {
+                      <p class="small text-danger mb-0 mt-1 exceso">
+                        <fa-icon [icon]="iconos.aviso" class="me-1" />Te pasarías de:
+                        @for (exceso of comida.excesos; track exceso.grupo.id; let ultimo = $last) {
+                          {{ exceso.grupo.nombre }} ({{ exceso.consumidas }}/{{ exceso.limite }}){{
+                            ultimo ? '.' : ', '
+                          }}
+                        }
+                      </p>
+                    }
+                    <div class="d-flex flex-wrap gap-2 mt-2">
+                      @if (comida.disponible) {
+                        <button
+                          type="button"
+                          class="btn btn-sm btn-outline-primary"
+                          [appRequiereConexion]="ocupada() !== null"
+                          [attr.aria-label]="'Ya la he comido: ' + comida.receta.titulo"
+                          (click)="consumir(comida)"
+                        >
+                          <fa-icon [icon]="iconos.comida" class="me-1" />Ya la he comido
+                        </button>
+                      }
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary"
+                        [appRequiereConexion]="ocupada() !== null"
+                        [attr.aria-label]="'Quitar ' + comida.receta.titulo + ' del planificador'"
+                        (click)="quitar(comida)"
+                      >
+                        <fa-icon [icon]="iconos.quitar" class="me-1" />Quitar
+                      </button>
+                    </div>
+                  } @else if (yaHaPasado(dia, momento)) {
+                    <span class="small text-body-secondary">Sin planificar</span>
+                  } @else {
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-secondary"
+                      appRequiereConexion
+                      [attr.aria-label]="'Añadir ' + momento.etiqueta + ' del ' + nombreDelDia(dia)"
+                      (click)="anadir(dia, momento)"
+                    >
+                      <fa-icon [icon]="iconos.anadir" class="me-1" />Añadir
+                    </button>
+                  }
+                </li>
+              }
+            </ul>
+          </article>
+        </div>
+      }
+    </div>
+
+    <section class="mt-5" aria-labelledby="titulo-previsto">
+      <h2 id="titulo-previsto" class="titulo-seccion">Cómo quedarían tus raciones</h2>
+      @if (p.indicadores.length > 0) {
+        <p class="text-center">
+          Al terminar esta semana, contando lo que ya has comido y lo que has planificado.
+        </p>
+        <ul class="list-unstyled row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-6 g-4">
+          @for (indicador of p.indicadores; track indicador.grupo.id) {
+            <li class="col">
+              <app-indicador-grupo [indicador]="indicador" />
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="text-center text-body-secondary">
+          Añade alguna comida para ver cómo quedarían tus raciones.
+        </p>
+      }
+    </section>
+  } @else if (cargando()) {
+    <div class="text-center py-5">
+      <span class="spinner-border text-secondary" role="status">
+        <span class="visually-hidden">Cargando el planificador…</span>
+      </span>
+    </div>
+  }
+</section>

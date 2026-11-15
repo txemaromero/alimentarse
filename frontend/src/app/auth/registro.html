@@ -1,0 +1,174 @@
+<section class="panel-formulario ancho animate__animated animate__fadeIn">
+  <div class="card">
+    <div class="card-body">
+      <h1 class="titulo-seccion mt-0">Crear una cuenta</h1>
+
+      @if (error(); as mensaje) {
+        <div class="alert alert-danger" role="alert">{{ mensaje }}</div>
+      }
+
+      <form [formGroup]="formulario" (ngSubmit)="registrar()" novalidate>
+        <div class="row g-3">
+          <div class="col-12">
+            <label for="registro-id" class="form-label">Nombre de usuario</label>
+            <input
+              id="registro-id"
+              type="text"
+              class="form-control"
+              formControlName="id"
+              autocomplete="username"
+              autocapitalize="none"
+              spellcheck="false"
+              maxlength="30"
+              [class.is-invalid]="esInvalido(formulario.controls.id)"
+              [attr.aria-invalid]="esInvalido(formulario.controls.id)"
+              aria-describedby="registro-id-ayuda registro-id-error"
+            />
+            <div id="registro-id-ayuda" class="form-text">
+              De 3 a 30 caracteres: letras sin tilde, números, punto, guion y guion bajo.
+            </div>
+            <app-error-campo
+              [control]="formulario.controls.id"
+              idMensaje="registro-id-error"
+              mensajePatron="Solo se permiten letras sin tilde, números, punto, guion y guion bajo"
+            />
+          </div>
+
+          <div class="col-md-4">
+            <label for="registro-nombre" class="form-label">Nombre</label>
+            <input
+              id="registro-nombre"
+              type="text"
+              class="form-control"
+              formControlName="nombre"
+              autocomplete="given-name"
+              maxlength="100"
+              [class.is-invalid]="esInvalido(formulario.controls.nombre)"
+              [attr.aria-invalid]="esInvalido(formulario.controls.nombre)"
+              aria-describedby="registro-nombre-error"
+            />
+            <app-error-campo
+              [control]="formulario.controls.nombre"
+              idMensaje="registro-nombre-error"
+            />
+          </div>
+
+          <div class="col-md-4">
+            <label for="registro-apellido1" class="form-label">Primer apellido</label>
+            <input
+              id="registro-apellido1"
+              type="text"
+              class="form-control"
+              formControlName="apellido1"
+              autocomplete="family-name"
+              maxlength="100"
+              [class.is-invalid]="esInvalido(formulario.controls.apellido1)"
+              [attr.aria-invalid]="esInvalido(formulario.controls.apellido1)"
+              aria-describedby="registro-apellido1-error"
+            />
+            <app-error-campo
+              [control]="formulario.controls.apellido1"
+              idMensaje="registro-apellido1-error"
+            />
+          </div>
+
+          <div class="col-md-4">
+            <label for="registro-apellido2" class="form-label">Segundo apellido</label>
+            <input
+              id="registro-apellido2"
+              type="text"
+              class="form-control"
+              formControlName="apellido2"
+              maxlength="100"
+              [class.is-invalid]="esInvalido(formulario.controls.apellido2)"
+              [attr.aria-invalid]="esInvalido(formulario.controls.apellido2)"
+              aria-describedby="registro-apellido2-ayuda registro-apellido2-error"
+            />
+            <div id="registro-apellido2-ayuda" class="form-text">Opcional.</div>
+            <app-error-campo
+              [control]="formulario.controls.apellido2"
+              idMensaje="registro-apellido2-error"
+            />
+          </div>
+
+          <div class="col-12">
+            <label for="registro-email" class="form-label">Email</label>
+            <input
+              id="registro-email"
+              type="email"
+              class="form-control"
+              formControlName="email"
+              autocomplete="email"
+              maxlength="100"
+              [class.is-invalid]="esInvalido(formulario.controls.email)"
+              [attr.aria-invalid]="esInvalido(formulario.controls.email)"
+              aria-describedby="registro-email-error"
+            />
+            <app-error-campo
+              [control]="formulario.controls.email"
+              idMensaje="registro-email-error"
+            />
+          </div>
+
+          <div class="col-md-6">
+            <label for="registro-password" class="form-label">Contraseña</label>
+            <input
+              id="registro-password"
+              type="password"
+              class="form-control"
+              formControlName="password"
+              autocomplete="new-password"
+              maxlength="72"
+              [class.is-invalid]="esInvalido(formulario.controls.password)"
+              [attr.aria-invalid]="esInvalido(formulario.controls.password)"
+              aria-describedby="registro-password-ayuda registro-password-error"
+            />
+            <div id="registro-password-ayuda" class="form-text">De 8 a 72 caracteres.</div>
+            <app-error-campo
+              [control]="formulario.controls.password"
+              idMensaje="registro-password-error"
+            />
+          </div>
+
+          <div class="col-md-6">
+            <label for="registro-confirmacion" class="form-label">Repite la contraseña</label>
+            <input
+              id="registro-confirmacion"
+              type="password"
+              class="form-control"
+              formControlName="confirmacion"
+              autocomplete="new-password"
+              maxlength="72"
+              [class.is-invalid]="esInvalido(formulario.controls.confirmacion)"
+              [attr.aria-invalid]="esInvalido(formulario.controls.confirmacion)"
+              aria-describedby="registro-confirmacion-error"
+            />
+            <app-error-campo
+              [control]="formulario.controls.confirmacion"
+              idMensaje="registro-confirmacion-error"
+            />
+          </div>
+        </div>
+
+        <p class="small text-body-secondary mt-3 mb-0">
+          Al registrarte aceptas las condiciones de uso descritas en la
+          <a routerLink="/informacion-legal">información legal</a>.
+        </p>
+
+        <div class="d-flex flex-column flex-sm-row gap-2 justify-content-end mt-4">
+          <a routerLink="/login" class="btn btn-outline-secondary">Ya tengo cuenta</a>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [appRequiereConexion]="formulario.invalid || enviando()"
+          >
+            @if (enviando()) {
+              <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+            }
+            Registrarse
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

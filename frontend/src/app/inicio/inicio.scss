@@ -1,0 +1,21 @@
+.portada {
+  background:
+    radial-gradient(circle at 85% 20%, rgb(255 255 255 / 45%) 0, transparent 40%),
+    linear-gradient(135deg, var(--toca-beige-claro) 0%, #e3d3c3 100%);
+  color: var(--toca-marron-oscuro);
+  border-bottom: 1px solid rgb(0 0 0 / 5%);
+}
+
+.buscador {
+  max-width: 36rem;
+}
+
+.ilustracion {
+  max-width: 100%;
+  height: auto;
+}
+
+// Reserva el sitio de las tarjetas: la sección siguiente no se mueve cuando llegan
+.cargando-seccion {
+  min-height: 30rem;
+}
